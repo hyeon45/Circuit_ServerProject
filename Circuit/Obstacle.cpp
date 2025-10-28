@@ -1,4 +1,5 @@
 #include "Obstacle.h"
+#include "Car.h"
 
 ObstacleManager::ObstacleManager() {
     // 장애물 위치 목록
@@ -131,6 +132,7 @@ void ObstacleManager::Collision(Car& car) {
             if (car.IsShieldActive()) {
                 RemoveObstacle(i);
                 car.DisableShield();
+                car.SetScale(1.0f);
                 std::cout << "실드로 장애물 파괴!" << std::endl;
                 return;
             }

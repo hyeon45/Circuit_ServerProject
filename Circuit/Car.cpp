@@ -166,3 +166,11 @@ void Car::ResetToCheckpoint() {
         speed = 0.0f;
     }
 }
+
+void Car::SetScale(float newScale) {
+    scale = newScale;
+}
+
+float Car::GetScale() const {
+    return scale;
+}
