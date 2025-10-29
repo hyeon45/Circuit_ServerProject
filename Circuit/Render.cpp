@@ -183,12 +183,15 @@ void Renderer::DrawScene(const Car& car, const ObstacleManager& obstacles, const
     glBindTexture(GL_TEXTURE_2D, textureMap);
     glUniform1i(glGetUniformLocation(shaderProgramID, "texture1"), 0);
 
+    glUniform1i(glGetUniformLocation(shaderProgramID, "uUseTexture"), 1);
+
     glBindVertexArray(vaoFloor);
     SetModelTransform(glm::mat4(1.0f));
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     // °´Ã¼ ·»´õ¸µ
+    glUniform1i(glGetUniformLocation(shaderProgramID, "uUseTexture"), 0);
     car.Draw(shaderProgramID);
     obstacles.Draw(shaderProgramID);
     items.Draw(shaderProgramID);
