@@ -2,12 +2,14 @@
 #include <vector>
 #include "Player.h"
 #include "Item.h"
+#include "Obstacle.h"
 
 class WorldState
 {
 public:
     Player player;           // 현재 1인용 버전
     std::vector<Item> items; // 맵 내 존재하는 아이템들
+    std::vector<Obstacle> obstacles;    // 맵에 존재하는 장애물들과 충돌판정 수치값
 
     WorldState();
 
