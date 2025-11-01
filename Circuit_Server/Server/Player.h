@@ -1,5 +1,4 @@
 #pragma once
-#include <cmath>
 
 class Player
 {
@@ -16,7 +15,4 @@ public:
     float shrinkTimer;     // 축소 아이템 지속시간
 
     Player(int pid = 0);
-
-    void ApplyItemEffect(int type); // 아이템 효과 적용
-    void Update(float dt);          // 이동 갱신 (yaw 기반)
 };
