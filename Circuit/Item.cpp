@@ -1,6 +1,8 @@
 #include "Item.h"
 #include <cstdlib>
 
+// 서버에 저장
+/*
 ItemManager::ItemManager() {
     positions = {
         {270.0f, 5.0f, 1100.0f},
@@ -20,7 +22,7 @@ ItemManager::ItemManager() {
         {870.0f, 5.0f, 600.0f},
         {900.0f, 5.0f, 600.0f}
     };
-}
+}*/
 
 void ItemManager::Init() {
     GLfloat vertices[] = {
