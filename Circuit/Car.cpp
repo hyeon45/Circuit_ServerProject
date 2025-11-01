@@ -105,8 +105,8 @@ void Car::Move(float dt) {
 
 void Car::Rotate(float dt) {
     float turnSpeed = glm::radians(15.0f);
-    if (turningLeft) yaw += turnSpeed * dt;
-    if (turningRight) yaw -= turnSpeed * dt;
+    if (turningLeft) yaw -= turnSpeed * dt;
+    if (turningRight) yaw += turnSpeed * dt;
 }
 
 void Car::Draw(GLuint shaderProgram) const {
@@ -165,4 +165,12 @@ void Car::ResetToCheckpoint() {
         position = checkpoints[lastCheckpoint];
         speed = 0.0f;
     }
+}
+
+void Car::SetScale(float newScale) {
+    scale = newScale;
+}
+
+float Car::GetScale() const {
+    return scale;
 }

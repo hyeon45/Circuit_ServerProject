@@ -35,6 +35,9 @@ public:
     void DisableShield() { shield = false; }
     void StopMovement() { speed = 0.0f; }
 
+    void SetScale(float newScale);
+    float GetScale() const;
+
 private:
     // 차량 상태
     glm::vec3 position;
