@@ -3,6 +3,8 @@
 
 ObstacleManager::ObstacleManager() {
     // 장애물 위치 목록
+    // 서버에 저장
+    /*
     positions = {
         {60.0f, 10.1f, 1500.0f},
         {140.0f,10.1f,1200.0f},
@@ -24,7 +26,7 @@ ObstacleManager::ObstacleManager() {
         {600.0f,10.1f,700.0f},
         {660.0f,10.1f,1000.0f},
         {860.0f,10.1f,1520.0f}
-    };
+    };*/
 
     // 충돌 판정용 바운드
     bounds = {
