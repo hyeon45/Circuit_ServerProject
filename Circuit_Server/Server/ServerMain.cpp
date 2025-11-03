@@ -1,19 +1,34 @@
 #include "ServerMain.h"
 #include "PacketHandler.h"
 
+struct NetThreadArg {
+	ServerMain* self;
+	int index;
+};
+
 ServerMain::ServerMain() {
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-		printf("WSAStartup failed\n");
-		exit(1);
+		err_quit("WSAStartup()");
 	}
 }
 
 ServerMain::~ServerMain() {
-	for (auto& c : clients) {
-		closesocket(c.sock);
+
+	// listen 소켓 정리
+	if (listen_sock != INVALID_SOCKET) {
+		closesocket(listen_sock);
+		listen_sock = INVALID_SOCKET;
 	}
-	closesocket(listen_sock);
+
+	// 클라 소켓 정리
+	for (auto& c : clients) {
+		if (c.sock != INVALID_SOCKET) {
+			closesocket(c.sock);
+			c.sock = INVALID_SOCKET;
+		}
+	}
+
 	WSACleanup();
 }
 
@@ -21,7 +36,35 @@ ServerMain::~ServerMain() {
 // 서버 초기화
 // -------------------------------
 bool ServerMain::InitServer(int port) {
+	
+	int retval;
 
+	// 소켓 생성
+	listen_sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (listen_sock == INVALID_SOCKET) {
+		err_quit("socket()");
+		return false;
+	}
+
+	// bind
+	sockaddr_in serveraddr{};
+	serveraddr.sin_family = AF_INET;
+	serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	serveraddr.sin_port = htons(static_cast<u_short>(port));
+	retval = bind(listen_sock, reinterpret_cast<sockaddr*>(&serveraddr), sizeof(serveraddr));
+	if (retval == SOCKET_ERROR) {
+		err_quit("bind()");
+		return false;
+	}
+
+	// listen
+	retval = listen(listen_sock, SOMAXCONN);
+	if (retval == SOCKET_ERROR) {
+		err_quit("listen()");
+		return false;
+	}
+
+	return true;
 }
 
 // -------------------------------
@@ -29,6 +72,50 @@ bool ServerMain::InitServer(int port) {
 // -------------------------------
 void ServerMain::AcceptClient() {
 
+	while (1) {
+
+		sockaddr_in clientaddr{};
+		int addrlen = sizeof(clientaddr);
+		HANDLE hThread;
+
+		// accept
+		SOCKET client_sock = accept(listen_sock, reinterpret_cast<sockaddr*>(&clientaddr), &addrlen);
+		if (client_sock == INVALID_SOCKET) {
+			err_display("accept()");
+			continue;
+		}
+
+		// 접속한 클라이언트 정보 출력
+		char addr[INET_ADDRSTRLEN]{};
+		inet_ntop(AF_INET, &clientaddr.sin_addr, addr, sizeof(addr));
+		int cport = ntohs(clientaddr.sin_port);
+		printf("\n[TCP 서버] 클라이언트 접속: IP 주소=%s, 포트 번호=%d\n", addr, cport);
+
+		// clients 에 데이터 등록
+		ClientInfo ci{};
+		ci.sock = client_sock;
+		ci.addr = clientaddr;
+		ci.playerID = static_cast<int>(clients.size()); //일단 각 클라마다 ID 할당할 때 주는 방식으로 선정
+		ci.connected = true;
+
+		clients.push_back(ci);
+
+		int idx = static_cast<int>((clients.size()) - 1);
+
+		// 클라이언트 별 스레드 생성
+		NetThreadArg* arg = new NetThreadArg{ this,idx };
+		hThread = CreateThread(NULL, 0, &ServerMain::NetThread, arg, 0, NULL);
+		if (hThread == NULL) {
+			err_display("CreateThread(NetThread)");
+			closesocket(client_sock);
+			clients[idx].connected = false;
+			clients[idx].sock = INVALID_SOCKET;
+			delete arg;
+			continue;
+		}
+		CloseHandle(hThread);
+
+	}
 }
 
 // -------------------------------
