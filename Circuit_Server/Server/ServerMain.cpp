@@ -95,10 +95,15 @@ void ServerMain::AcceptClient() {
 		ClientInfo ci{};
 		ci.sock = client_sock;
 		ci.addr = clientaddr;
-		ci.playerID = static_cast<int>(clients.size()); //일단 각 클라마다 ID 할당할 때 주는 방식으로 선정
 		ci.connected = true;
 
-		clients.push_back(ci);
+		{
+			std::lock_guard<std::mutex> lg(worldMutex);
+			ci.playerID = static_cast<int>(world.players.size()); //일단 각 클라마다 ID 할당할 때 주는 방식으로 선정
+			clients.push_back(ci);
+			// world에 플레이어 생성
+			world.players.push_back(Player(ci.playerID));
+		}
 
 		int idx = static_cast<int>((clients.size()) - 1);
 
@@ -108,6 +113,7 @@ void ServerMain::AcceptClient() {
 		if (hThread == NULL) {
 			err_display("CreateThread(NetThread)");
 			closesocket(client_sock);
+			// 필요하다면 std::lock_guard<std::mutex> lg(worldMutex); 으로보호
 			clients[idx].connected = false;
 			clients[idx].sock = INVALID_SOCKET;
 			delete arg;
