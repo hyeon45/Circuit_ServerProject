@@ -152,3 +152,12 @@ void ServerMain::BroadcastFinalResult() {
 
 }
 
+// -------------------------------
+// 단일 클라 접근용
+// -------------------------------
+std::optional<CopyClientInfo> ServerMain::GetClient(int id) const {
+	std::lock_guard<std::mutex> lg(clientsMutex);
+	if (id < 0 || id >= static_cast<int>(clients.size())) return std::nullopt;
+	const auto& c = clients[id];
+	return CopyClientInfo{ c.sock,c.addr,c.playerID,c.connected,c.button.load() };
+}
