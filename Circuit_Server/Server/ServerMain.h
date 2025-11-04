@@ -41,7 +41,7 @@ public:
 
 	// 단일 클라 접근용
 	std::optional<CopyClientInfo> GetClient(int id) const;
-	
+
 private:
 	SOCKET listen_sock;
 	std::vector<ClientInfo> clients;
