@@ -1,11 +1,24 @@
 #include "PacketHandler.h"
+#include "ServerMain.h"
+#include "CarPacket.h"
 
 
 // -------------------------------------------------------------------------
 // 클라 입력 패킷을 서버 내부 상태에 반영
 // -------------------------------------------------------------------------
 void PacketHandler::ProcessCarMove(int playerID, const PKT_CarMove& pkt) {
+    if (!server_) return;
 
+    if (playerID < 0 || playerID >= static_cast<int>(server_->clients.size()))
+        return;
+
+    ClientInfo& client = server_->clients[playerID];
+    if (!client.connected)
+        return;
+
+    ClientInfo& client = server_->clients[playerID];
+    if (!client.connected)
+        return;
 }
 
 // -------------------------------------------------------------------------
