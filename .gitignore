@@ -49,3 +49,9 @@
 *.db
 *.db-shm
 *.db-wal
+*.vcxproj
+*.filters
+*.log
+*.tlog
+*.lastbuildstate
+*.idb
