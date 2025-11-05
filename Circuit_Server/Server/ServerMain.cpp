@@ -1,5 +1,5 @@
 #include "ServerMain.h"
-#include "PacketHandler.h"
+
 
 struct NetThreadArg {
 	ServerMain* self;
@@ -11,9 +11,18 @@ ServerMain::ServerMain() {
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
 		err_quit("WSAStartup()");
 	}
+
+	// PacketHandler 가 ServerMain 을 참조할 수 있도록 생성자 추가
+	pkt_handler = new PacketHandler(this);
+
+	// ServerMain 의 월드 공유
+	itemEffectManager = new ItemEffectManager(world);
 }
 
 ServerMain::~ServerMain() {
+	// new 로 만든 생성자 소멸
+	delete pkt_handler;
+	delete itemEffectManager;
 
 	// listen 소켓 정리
 	if (listen_sock != INVALID_SOCKET) {
@@ -142,7 +151,14 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 // 아이템 삭제 처리
 // -------------------------------
 void ServerMain::ProcessItemDelete(int playerID, int itemID) {
+	// 서버에서 아이템 제거
+	world.RemoveItem(itemID);
 
+	// 클라이언트에게 삭제 패킷 전송
+	pkt_handler->ItemDelete(itemID);
+
+	// 아이템 효과 발동 (아직 미구현)
+	itemEffectManager->ApplyItemEffect(playerID, itemID);
 }
 
 // -------------------------------

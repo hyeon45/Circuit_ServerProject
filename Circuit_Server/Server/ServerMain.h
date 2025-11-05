@@ -1,7 +1,8 @@
 #pragma once
 #include "Common.h"
-#include "CarPacket.h"
 #include "WorldState.h"
+#include "ItemEffectManager.h"
+#include "PacketHandler.h"
 #include <vector>
 #include <thread>
 #include <mutex>
@@ -48,5 +49,7 @@ private:
 	std::mutex worldMutex;
 	mutable std::mutex clientsMutex;
 	WorldState world;
+	PacketHandler* pkt_handler;
+	ItemEffectManager* itemEffectManager;
 
 };
