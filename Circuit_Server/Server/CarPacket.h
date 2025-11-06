@@ -30,6 +30,8 @@ struct PKT_WorldSync {
 	int playerID;
 	float posx, posy, posz;
 	float yaw;
+	float    scale;     // 추가
+	uint8_t  shield;    // 추가 (0/1)
 };
 
 struct PKT_GameResult {

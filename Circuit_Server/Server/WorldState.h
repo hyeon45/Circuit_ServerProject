@@ -4,6 +4,12 @@
 #include "Item.h"
 #include "Obstacle.h"
 
+// 충돌 체크 할때 사용할 구조체
+struct CollisionInfo {
+    int playerID;
+    int itemID;
+};
+
 class WorldState
 {
 public:
@@ -16,4 +22,7 @@ public:
     void Initialize();           // 초기 세팅
     void RemoveItem(int itemID); // 아이템 삭제 처리
     void SyncPlayers();          // 클라이언트를 받아 위치, 속도, 데이터를 동기화해 구조체를 반영
+    void ApplyInput(int playerID, uint8_t button);
+    void StepPhysics(float delatTime);
+    void DetectItemCollisions(std::vector<CollisionInfo>& outPicked);
 };
