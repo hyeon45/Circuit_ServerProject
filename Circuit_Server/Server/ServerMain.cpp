@@ -133,18 +133,174 @@ void ServerMain::AcceptClient() {
 	}
 }
 
+#pragma pack(push,1)
+struct PKT_HEADER {
+	uint16_t type;
+	uint16_t size;
+};
+#pragma pack(pop)
+
 // -------------------------------
 // 클라이언트 송수신 스레드
 // -------------------------------
 DWORD WINAPI ServerMain::NetThread(LPVOID arg) {
+	std::unique_ptr<NetThreadArg> guard((NetThreadArg*)arg);
+	ServerMain* self = guard->self;
+	const int idx = guard->index;
 
+	SOCKET sock = INVALID_SOCKET;
+	int playerID = -1;
+
+	{
+		std::lock_guard<std::mutex> lg(self->clientsMutex);
+		if (idx < 0 || idx >= static_cast<int>(self->clients.size()) || self->clients[idx].connected == false)
+			return 0;
+		sock = self->clients[idx].sock;
+		playerID = self->clients[idx].playerID;
+	}
+
+	// 초기 동기화 패킷 보내주기 PKT_WorldSync 패킷 send? (일단 보류)
+	// 클라가 다 접속하면 PKT_GAME_START send해주기 (원래 2인용이었는데 아직 최대 인원 못 정함) > 보류
+
+
+	char headerBuf[sizeof(PKT_HEADER)];
+
+	int retval;
+
+	while (1) {
+
+		// 헤더 수신
+		retval = recv(sock, headerBuf, sizeof(PKT_HEADER), MSG_WAITALL);
+		if (retval == SOCKET_ERROR) {
+			err_display("recv()");
+			break;
+		}
+
+		PKT_HEADER hdr;
+		memcpy(&hdr, headerBuf, sizeof(PKT_HEADER));
+
+		// 유효성 확인
+		if (hdr.size < sizeof(PKT_HEADER))
+			break;
+
+		const int bodysize = hdr.size - sizeof(PKT_HEADER);
+		std::vector<char> body(bodysize);
+		if (bodysize > 0) {
+			retval = recv(sock, body.data(), bodysize, MSG_WAITALL);
+			if (retval == SOCKET_ERROR) {
+				err_display("recv()");
+				break;
+			}
+		}
+
+		// 패킷 처리
+		switch (hdr.type) 
+		{
+		case PKT_CAR_MOVE:
+		{	// 클라 입력 패킷 반영
+			if ((int)body.size() < (int)sizeof(PKT_CarMove)) {
+				break;
+			}
+			const PKT_CarMove* pkt = reinterpret_cast<const PKT_CarMove*>(body.data());
+			uint8_t btn = pkt->button;
+			{
+				std::lock_guard<std::mutex> lg(self->clientsMutex);
+				if (idx >= 0 && idx < (int)self->clients.size() && self->clients[idx].connected) {
+					self->clients[idx].button.store(btn);
+				}
+			}
+			break;
+		}
+		default:
+			break;
+		}
+		// 따로 send 하고 싶은 패킷이 있으면 추가 send는 패킷 핸들러가 직접 send 해도 된다.
+		// physicsThread에서 틱마다 PKT_WorldSync send 해줌
+	}
+
+	// 연결 끊깃 것 정리
+	{
+		std::lock_guard<std::mutex> lg(self->clientsMutex);
+		if (idx >= 0 && idx < static_cast<int>(self->clients.size())) {
+			self->clients[idx].connected = false;
+			if (self->clients[idx].sock != INVALID_SOCKET) {
+				closesocket(self->clients[idx].sock);
+				self->clients[idx].sock = INVALID_SOCKET;
+			}
+		}
+	}
+	printf("[NetThread] player %d disconnected\n", playerID);
+	return 0;
 }
+
+struct InputSnapshot {
+	int      playerID;
+	uint8_t  button;
+};
 
 // -------------------------------
 // 물리 스레드
 // -------------------------------
 DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
+	ServerMain* self = (ServerMain*)arg;
 
+	using clock = std::chrono::steady_clock;
+	auto next = clock::now();
+	const auto tick = std::chrono::milliseconds(16); // 60fps
+
+	while (1) {
+		next += tick;
+
+		std::vector<InputSnapshot> inputs;
+		{
+			std::lock_guard<std::mutex> cg(self->clientsMutex);
+			inputs.reserve(self->clients.size());
+			for (const auto& c : self->clients) {
+				if (!c.connected) continue;
+				inputs.push_back(InputSnapshot{ c.playerID, c.button.load() });
+			}
+		}
+
+		std::vector<CollisionInfo> picked;
+		int winner = -1; // CheckFinsh() 만들면 추가
+		{
+			std::lock_guard<std::mutex> lg(self->worldMutex);
+
+			// 입력 반영
+			for (const auto& in : inputs) {
+				const int pid = in.playerID;
+				if (pid >= 0 && pid < (int)self->world.players.size()) {
+					self->world.ApplyInput(pid, in.button);
+				}
+			}
+
+			// 물리 적분,스텝
+			self->world.StepPhysics(1.0f / 60.0f);
+
+			// 충돌 아이템 판정
+			
+			self->world.DetectItemCollisions(picked);
+
+			// winner - self->world.CheckFinish(); // 아직 미구현
+			
+		}
+		for (const auto& e : picked) {
+			self->ProcessItemDelete(e.playerID, e.itemID);
+		}
+
+
+		if (winner >= 0) {
+			self->BroadcastFinalResult();
+		}
+
+		self->pkt_handler->SendWorldState();
+
+		// 틱 시간 보정. 다음 프레임 목표까지 쉼.
+		std::this_thread::sleep_until(next);
+		
+	}
+	return 0;
+	
 }
 
 // -------------------------------
