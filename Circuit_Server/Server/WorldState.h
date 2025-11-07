@@ -23,6 +23,7 @@ public:
     void RemoveItem(int itemID); // 아이템 삭제 처리
     void SyncPlayers();          // 클라이언트를 받아 위치, 속도, 데이터를 동기화해 구조체를 반영
     void ApplyInput(int playerID, uint8_t button);
-    void StepPhysics(float delatTime);
+    void StepPhysics(float deltaTime);
     void DetectItemCollisions(std::vector<CollisionInfo>& outPicked);
+    void ObsCollisionCheck(int playerID); // 장애물 충돌 판정 인자는 플레이어 ID로 해놨음 
 };
