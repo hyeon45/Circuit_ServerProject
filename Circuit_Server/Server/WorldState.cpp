@@ -1,4 +1,6 @@
 #include "WorldState.h"
+#include <algorithm>
+#include <cmath>
 
 WorldState::WorldState()
     : player(0) // Player ID
@@ -80,6 +82,85 @@ void WorldState::RemoveItem(int itemID)
 // 클라이언트 위치, 회전, 속도 데이터 동기화 반영
 // ----------------------------------------
 void WorldState::SyncPlayers()
+{
+
+}
+
+// ----------------------------------------
+// 물리스레드에서 입력값을 받아 가속도, 방향을 계산
+// ----------------------------------------
+void WorldState::ApplyInput(int playerID, uint8_t button)
+{
+    if (playerID < 0 || playerID >= static_cast<int>(players.size()))
+        return;
+
+    Player& p = players[playerID];
+
+    bool forward = button & 0x01;
+    bool backward = button & 0x02;
+    bool turnLeft = button & 0x04;
+    bool turnRight = button & 0x08;
+
+    const float acceleration = 40.0f;
+    const float rotSpeed = 15.0f * 3.1415926535f / 180.0f;
+
+    if (forward)
+        p.speed += acceleration;
+    else if (backward)
+        p.speed -= acceleration;
+    else {
+        if (p.speed > 0.0f)      p.speed = std::max(0.0f, p.speed - acceleration);
+        else if (p.speed < 0.0f) p.speed = std::min(0.0f, p.speed + acceleration);
+    }
+    if (turnLeft)
+        p.yaw -= rotSpeed * (1.0f / 60.0f);
+    if (turnRight)
+        p.yaw += rotSpeed * (1.0f / 60.0f);
+
+    if (p.speed > p.maxSpeed) p.speed = p.maxSpeed;
+    if (p.speed < -p.maxSpeed) p.speed = -p.maxSpeed;
+}
+
+// ----------------------------------------
+// 서버에 틱 시간에 맞춰서 단순 위치를 계산
+// ----------------------------------------
+void WorldState::StepPhysics(float deltaTime)
+{
+    for (auto& p : players)
+    {
+        // 단순 위치 적분
+        p.posx += std::cos(p.yaw) * p.speed * deltaTime;
+        p.posz += std::sin(p.yaw) * p.speed * deltaTime;
+        p.speed *= 0.98f;
+    }
+}
+
+// ----------------------------------------
+// 충돌한 아이템 판정
+// ----------------------------------------
+void WorldState::DetectItemCollisions(std::vector<CollisionInfo>& outPicked)
+{
+    outPicked.clear();
+
+    const float pickupRange = 15.0f;
+
+    for (auto& p : players) {
+        for (auto& item : items) {
+            float dx = p.posx - item.x;
+            float dz = p.posz - item.z;
+            float dist = dx * dx + dz * dz;
+
+            if (dist <= pickupRange * pickupRange) {
+                outPicked.push_back({ p.playerID,item.id });
+            }
+        }
+    }
+}
+
+// ----------------------------------------
+// 장애물 충돌 판정
+// ----------------------------------------
+void WorldState::ObsCollisionCheck(int playerID)
 {
 
 }
