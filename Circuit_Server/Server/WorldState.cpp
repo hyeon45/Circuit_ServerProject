@@ -129,8 +129,8 @@ void WorldState::StepPhysics(float deltaTime)
     for (auto& p : players)
     {
         // 단순 위치 적분
-        p.posx += std::cos(p.yaw) * p.speed * deltaTime;
-        p.posz += std::sin(p.yaw) * p.speed * deltaTime;
+        p.x += std::cos(p.yaw) * p.speed * deltaTime;
+        p.z += std::sin(p.yaw) * p.speed * deltaTime;
         p.speed *= 0.98f;
     }
 }
@@ -146,12 +146,12 @@ void WorldState::DetectItemCollisions(std::vector<CollisionInfo>& outPicked)
 
     for (auto& p : players) {
         for (auto& item : items) {
-            float dx = p.posx - item.x;
-            float dz = p.posz - item.z;
+            float dx = p.x - item.x;
+            float dz = p.z - item.z;
             float dist = dx * dx + dz * dz;
 
             if (dist <= pickupRange * pickupRange) {
-                outPicked.push_back({ p.playerID,item.id });
+                outPicked.push_back({ p.id,item.id });
             }
         }
     }
