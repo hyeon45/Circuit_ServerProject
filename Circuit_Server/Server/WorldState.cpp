@@ -3,6 +3,7 @@
 WorldState::WorldState()
     : player(0) // Player ID
 {
+    Initialize();
 }
 
 // ----------------------------------------
