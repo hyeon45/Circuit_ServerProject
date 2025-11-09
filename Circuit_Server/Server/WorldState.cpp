@@ -1,6 +1,8 @@
 #include "WorldState.h"
 #include <algorithm>
 #include <cmath>
+#include <random>
+
 
 WorldState::WorldState()
     : player(0) // Player ID
@@ -68,6 +70,15 @@ void WorldState::Initialize()
         {19,860.0f,  obstaclePosy, 1520.0f, 20.0f}
     };
 
+    // ----------------------------------------
+    // 아이템 타입 랜덤 지정
+    // ----------------------------------------
+    std::random_device rd;
+    std::uniform_int_distribution<int> dist(1, 3); // 1~3 (Grow, Shrink, SpeedBoost)
+
+    for (auto& item : items) {
+        item.type = static_cast<ItemType>(dist(rd));
+    }
 }
 
 // ----------------------------------------
@@ -164,4 +175,16 @@ void WorldState::DetectItemCollisions(std::vector<CollisionInfo>& outPicked)
 void WorldState::ObsCollisionCheck(int playerID)
 {
 
+}
+
+// ----------------------------------------
+// 아이템 타입 반환 함수
+// ----------------------------------------
+ItemType WorldState::GetItemType(int itemID)
+{
+    for (const auto& item : items) {
+        if (item.id == itemID)
+            return item.type;
+    }
+    return ItemType::None;
 }

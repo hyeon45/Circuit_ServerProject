@@ -30,4 +30,5 @@ public:
     void StepPhysics(float deltaTime);
     void DetectItemCollisions(std::vector<CollisionInfo>& outPicked);
     void ObsCollisionCheck(int playerID); // 장애물 충돌 판정 인자는 플레이어 ID로 해놨음 
+    ItemType GetItemType(int itemID);  // 아이템 타입 반환
 };

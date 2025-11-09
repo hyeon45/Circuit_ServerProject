@@ -14,15 +14,11 @@ ServerMain::ServerMain() {
 
 	// PacketHandler 가 ServerMain 을 참조할 수 있도록 생성자 추가
 	pkt_handler = new PacketHandler(this);
-
-	// ServerMain 의 월드 공유
-	itemEffectManager = new ItemEffectManager(world);
 }
 
 ServerMain::~ServerMain() {
 	// new 로 만든 생성자 소멸
 	delete pkt_handler;
-	delete itemEffectManager;
 
 	// listen 소켓 정리
 	if (listen_sock != INVALID_SOCKET) {
@@ -252,6 +248,7 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 	using clock = std::chrono::steady_clock;
 	auto next = clock::now();
 	const auto tick = std::chrono::milliseconds(16); // 60fps
+	const float deltaTime = 1.0f / 60.0f;
 
 	while (1) {
 		next += tick;
@@ -286,11 +283,22 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 			
 			self->world.DetectItemCollisions(picked);
 
+			// 아이템 지속 효과 적용 및 지속시간 갱신
+			for (auto& player : self->world.players) {
+				player.UpdateEffect(deltaTime);  // 지속시간 관리 (3초, 5초 등)
+			}
+
 			// winner - self->world.CheckFinish(); // 아직 미구현
 			
 		}
 		for (const auto& e : picked) {
 			self->ProcessItemDelete(e.playerID, e.itemID);
+
+			ItemType itemType = self->world.GetItemType(e.itemID);
+
+			if (e.playerID >= 0 && e.playerID < (int)self->world.players.size()) {
+				self->world.players[e.playerID].ApplyItemEffect(itemType);
+			}
 		}
 
 
@@ -312,14 +320,11 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 // 아이템 삭제 처리
 // -------------------------------
 void ServerMain::ProcessItemDelete(int playerID, int itemID) {
-	// 서버에서 아이템 제거
+	// 아이템 삭제만 수행
 	world.RemoveItem(itemID);
 
 	// 클라이언트에게 삭제 패킷 전송
 	pkt_handler->ItemDelete(itemID);
-
-	// 아이템 효과 발동 (아직 미구현)
-	itemEffectManager->ApplyItemEffect(playerID, itemID);
 }
 
 // -------------------------------
