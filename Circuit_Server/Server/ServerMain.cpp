@@ -107,14 +107,19 @@ void ServerMain::AcceptClient() {
 		ci.connected = true;
 
 		{
-			std::lock_guard<std::mutex> lg(worldMutex);
+			std::lock_guard<std::mutex> wg(worldMutex);
 			ci.playerID = static_cast<int>(world.players.size()); //일단 각 클라마다 ID 할당할 때 주는 방식으로 선정
-			clients.push_back(ci);
+			
 			// world에 플레이어 생성
 			world.players.push_back(Player(ci.playerID));
 		}
 
-		int idx = static_cast<int>((clients.size()) - 1);
+		// clients에 등록 
+		{
+			std::lock_guard<std::mutex> cg(clientsMutex);
+			clients.push_back(ci);
+			int idx = static_cast<int>((clients.size()) - 1);
+		}
 
 		// 클라이언트 별 스레드 생성
 		NetThreadArg* arg = new NetThreadArg{ this,idx };
@@ -332,4 +337,51 @@ std::optional<CopyClientInfo> ServerMain::GetClient(int id) const {
 	if (id < 0 || id >= static_cast<int>(clients.size())) return std::nullopt;
 	const auto& c = clients[id];
 	return CopyClientInfo{ c.sock,c.addr,c.playerID,c.connected,c.button.load() };
+}
+
+// -------------------------------
+// 클라 스냅샷 가져오기
+// -------------------------------
+std::vector<CopyClientInfo> ServerMain::GetClientsnapshot() const {
+	std::lock_guard<std::mutex> cl(clientsMutex);
+	std::vector<CopyClientInfo> snapshot;
+	snapshot.reserve(clients.size());
+	for (const auto& c : clients) {
+		if (c.connected && c.sock != INVALID_SOCKET) {
+			snapshot.push_back(CopyClientInfo{
+				c.sock,
+				c.addr,
+				c.playerID,
+				c.connected,
+				c.button.load()
+				});
+		}
+	}
+	return snapshot;
+}
+
+// -------------------------------
+// 플레이어들 현재 상태 패킷정보 가져오기
+// -------------------------------
+std::vector<PKT_WorldSync> ServerMain::WorldSyncPackets() const {
+	std::lock_guard<std::mutex> lg(worldMutex);
+	
+	const auto& players = world.GetPlayers();
+
+	std::vector<PKT_WorldSync> pkts;
+	pkts.reserve(players.size());
+
+	for (const auto& p : players) {
+		PKT_WorldSync pkt;
+		pkt.type = PKT_WORLD_SYNC;
+		pkt.playerID = p.id;
+		pkt.posx = p.x;
+		pkt.posy = p.y;
+		pkt.posz = p.z;
+		pkt.yaw = p.yaw;
+		pkt.scale = p.scale;
+		pkt.shield = p.shield ? 1u : 0u;
+		pkts.push_back(pkt);
+	}
+	return pkts;
 }

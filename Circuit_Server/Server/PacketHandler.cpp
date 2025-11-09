@@ -29,6 +29,7 @@ void PacketHandler::ProcessCarMove(int playerID, const PKT_CarMove& pkt) {
 // -------------------------------------------------------------------------
 void PacketHandler::ItemDelete(int itemID) {
 	
+
 }
 
 // -------------------------------------------------------------------------
@@ -36,6 +37,14 @@ void PacketHandler::ItemDelete(int itemID) {
 // -------------------------------------------------------------------------
 void PacketHandler::SendWorldState() {
 
+    const auto clients = server_->GetClientsnapshot();
+    const auto pkts = server_->WorldSyncPackets();
+
+    for (const auto& cl : clients) {
+        for (const auto& pkt : pkts) {
+            send(cl.sock, reinterpret_cast<const char*>(&pkt), sizeof(pkt), 0);
+        }
+    }
 }
 
 // -------------------------------------------------------------------------

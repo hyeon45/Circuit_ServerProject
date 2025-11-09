@@ -3,6 +3,7 @@
 #include "WorldState.h"
 #include "ItemEffectManager.h"
 #include "PacketHandler.h"
+#include "CarPacket.h" 
 #include <vector>
 #include <thread>
 #include <mutex>
@@ -26,6 +27,7 @@ struct CopyClientInfo {
 };
 
 class ServerMain {
+	friend class PacketHandler;
 public:
 	ServerMain();
 	~ServerMain();
@@ -43,10 +45,15 @@ public:
 	// 단일 클라 접근용
 	std::optional<CopyClientInfo> GetClient(int id) const;
 
+	// 클라 스냅샷 가져오기
+	std::vector<CopyClientInfo> GetClientsnapshot() const;
+	// 플레이어들 현재 상태 패킷정보 가져오기
+	std::vector<PKT_WorldSync> WorldSyncPackets() const;
+
 private:
 	SOCKET listen_sock;
 	std::vector<ClientInfo> clients;
-	std::mutex worldMutex;
+	mutable std::mutex worldMutex;
 	mutable std::mutex clientsMutex;
 	WorldState world;
 	PacketHandler* pkt_handler;
