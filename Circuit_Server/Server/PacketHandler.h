@@ -9,7 +9,7 @@ class PacketHandler {
 public:
 	PacketHandler(ServerMain* server) : server_(server) {};
 	void ProcessCarMove(int playerID, const PKT_CarMove& pkt);
-	void ItemDelete(int itemID);
+	void ItemDelete(const PKT_ItemDelete& pkt);
 	void SendWorldState();
 	void SendGameResult(int winnerID);
 	

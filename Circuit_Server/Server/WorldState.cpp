@@ -84,16 +84,17 @@ void WorldState::Initialize()
 // ----------------------------------------
 // 아이템 제거 처리 (충돌 시 호출)
 // ----------------------------------------
-void WorldState::RemoveItem(int itemID)
+bool WorldState::RemoveItem(int itemID, Item& removedOut)
 {
-    auto it = std::remove_if(items.begin(), items.end(), [itemID](const Item& item) {
-            return item.id == itemID;
-        });
+    auto it = std::find_if(items.begin(), items.end(),
+        [itemID](const Item& a) { return a.id == itemID; });
 
-    if (it != items.end()) {
-        items.erase(it, items.end());
-    }
-    
+    if (it == items.end())
+        return false;
+    removedOut = *it;
+    items.erase(it);
+    return true;
+
 }
 
 

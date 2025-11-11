@@ -321,11 +321,26 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 // 아이템 삭제 처리
 // -------------------------------
 void ServerMain::ProcessItemDelete(int playerID, int itemID) {
-	// 아이템 삭제만 수행
-	world.RemoveItem(itemID);
+	Item removed;
+
+	{
+		std::lock_guard<std::mutex> lg(worldMutex);
+		// 아이템 삭제만 수행
+		if (!world.RemoveItem(itemID, removed))
+			return;
+
+	}
+
+	// 삭제 전 패킷에 미리 저장
+	PKT_ItemDelete pkt;
+	pkt.type = PKT_ITEM_DELETE;
+	pkt.itemID = itemID;
+	pkt.posx = removed.x;
+	pkt.posy = removed.y;
+	pkt.posz = removed.z;
 
 	// 클라이언트에게 삭제 패킷 전송
-	pkt_handler->ItemDelete(itemID);
+	pkt_handler->ItemDelete(pkt);
 }
 
 // -------------------------------

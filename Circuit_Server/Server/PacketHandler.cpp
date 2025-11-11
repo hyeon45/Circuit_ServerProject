@@ -27,7 +27,7 @@ void PacketHandler::ProcessCarMove(int playerID, const PKT_CarMove& pkt) {
 // -------------------------------------------------------------------------
 // PKT_ITEM_DELETE 패킷을 <전송 실제 삭제는 WorldState::RemoveItem에서 수행>
 // -------------------------------------------------------------------------
-void PacketHandler::ItemDelete(int itemID) {
+void PacketHandler::ItemDelete(const PKT_ItemDelete& pkt) {
 	
 
 }
