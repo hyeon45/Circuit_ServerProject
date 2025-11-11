@@ -24,7 +24,7 @@ public:
     WorldState();
 
     void Initialize();           // 초기 세팅
-    void RemoveItem(int itemID); // 아이템 삭제 처리
+    bool RemoveItem(int itemID, Item& removedOut); // 아이템 삭제 처리
     void SyncPlayers();          // 클라이언트를 받아 위치, 속도, 데이터를 동기화해 구조체를 반영
     void ApplyInput(int playerID, uint8_t button);
     void StepPhysics(float deltaTime);
