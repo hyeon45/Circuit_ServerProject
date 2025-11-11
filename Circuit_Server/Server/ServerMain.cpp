@@ -110,11 +110,12 @@ void ServerMain::AcceptClient() {
 			world.players.push_back(Player(ci.playerID));
 		}
 
+		int idx = -1;
 		// clients에 등록 
 		{
 			std::lock_guard<std::mutex> cg(clientsMutex);
 			clients.push_back(ci);
-			int idx = static_cast<int>((clients.size()) - 1);
+			idx = static_cast<int>((clients.size()) - 1);
 		}
 
 		// 클라이언트 별 스레드 생성
