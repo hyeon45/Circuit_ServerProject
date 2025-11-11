@@ -86,6 +86,13 @@ void WorldState::Initialize()
 // ----------------------------------------
 void WorldState::RemoveItem(int itemID)
 {
+    auto it = std::remove_if(items.begin(), items.end(), [itemID](const Item& item) {
+            return item.id == itemID;
+        });
+
+    if (it != items.end()) {
+        items.erase(it, items.end());
+    }
     
 }
 
