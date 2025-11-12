@@ -53,3 +53,18 @@ void PacketHandler::SendWorldState() {
 void PacketHandler::SendGameResult(int winnerID) {
 
 }
+
+
+// -------------------------------------------------------------------------
+// PKT_GAME_RESULT 패킷을 전송 <최종 승자 정보 전송>
+// -------------------------------------------------------------------------
+void PacketHandler::SendGameStart() {
+    PKT_GameStart pkt;
+    pkt.type = PKT_GAME_START;
+
+    const auto clients = server_->GetClientsnapshot();
+
+    for (const auto& ci : clients) {
+        send(ci.sock, reinterpret_cast<const char*>(&pkt), sizeof(pkt), 0);
+    }
+}

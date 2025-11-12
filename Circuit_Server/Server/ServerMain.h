@@ -56,4 +56,6 @@ private:
 	mutable std::mutex clientsMutex;
 	WorldState world;
 	PacketHandler* pkt_handler;
+	std::atomic<bool> gameStarted{ false };
+	int requiredPlayers = 2;
 };
