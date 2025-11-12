@@ -111,11 +111,23 @@ void ServerMain::AcceptClient() {
 		}
 
 		int idx = -1;
+		bool shouldSendStart = false;
+
 		// clients에 등록 
 		{
 			std::lock_guard<std::mutex> cg(clientsMutex);
 			clients.push_back(ci);
 			idx = static_cast<int>((clients.size()) - 1);
+
+			if (gameStarted.load() == false) {
+				int connected = 0;
+				for (const auto& c : clients)
+					if (c.connected) ++connected;
+				if (connected >= requiredPlayers) {
+					gameStarted.store(true);
+					shouldSendStart = true;
+				}
+			}
 		}
 
 		// 클라이언트 별 스레드 생성
@@ -132,6 +144,9 @@ void ServerMain::AcceptClient() {
 		}
 		CloseHandle(hThread);
 
+		if (shouldSendStart) {
+			pkt_handler->SendGameStart();
+		}
 	}
 }
 
@@ -293,11 +308,15 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 			
 		}
 		for (const auto& e : picked) {
+			ItemType itemType = ItemType::None;
+			{
+				std::lock_guard<std::mutex> lg(self->worldMutex);
+				ItemType itemType = self->world.GetItemType(e.itemID);	//삭제 전 조회
+			}
+
 			self->ProcessItemDelete(e.playerID, e.itemID);
 
-			ItemType itemType = self->world.GetItemType(e.itemID);
-
-			if (e.playerID >= 0 && e.playerID < (int)self->world.players.size()) {
+			if (itemType != ItemType::None &&e.playerID >= 0 && e.playerID < (int)self->world.players.size()) {
 				self->world.players[e.playerID].ApplyItemEffect(itemType);
 			}
 		}
