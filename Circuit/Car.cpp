@@ -2,19 +2,19 @@
 #include <GL/freeglut.h>
 
 Car::Car()
-    : //position(100.0f, 10.0f, 1780.0f),
-    //yaw(0.0f),
-    //speed(0.0f),
-    //acceleration(40.0f),
-    //maxSpeed(80.0f),
-    //scale(1.0f),
-    //shield(false),
+    : position(100.0f, 10.0f, 1780.0f),
+    yaw(0.0f),
+    speed(0.0f),
+    acceleration(40.0f),
+    maxSpeed(80.0f),
+    scale(1.0f),
+    shield(false),
     movingForward(false),
     movingBackward(false),
     turningLeft(false),
     turningRight(false),
-    //speedBoostTimer(0.0f),
-    //shrinkTimer(0.0f),
+    speedBoostTimer(0.0f),
+    shrinkTimer(0.0f),
     lastCheckpoint(0)
 {
     checkpoints = {
