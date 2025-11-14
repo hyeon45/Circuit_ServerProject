@@ -8,7 +8,7 @@
 
 class ItemManager {
 public:
-    // ItemManager();
+     ItemManager();
 
     void Init();
     void Draw(GLuint shaderProgram) const;

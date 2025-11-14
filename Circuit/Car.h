@@ -40,13 +40,13 @@ public:
 
 private:
     // 차량 상태
-    //glm::vec3 position;
-    //float yaw;
-    //float speed;
-    //float acceleration;
-    //float maxSpeed;
-    //float scale;
-    //bool shield;
+    glm::vec3 position;
+    float yaw;
+    float speed;
+    float acceleration;
+    float maxSpeed;
+    float scale;
+    bool shield;
 
     // 키 입력 상태
     bool movingForward;
@@ -55,8 +55,8 @@ private:
     bool turningRight;
 
     // 아이템 효과 지속 시간
-    //float speedBoostTimer;
-    //float shrinkTimer;
+    float speedBoostTimer;
+    float shrinkTimer;
 
     // 렌더링용 버퍼
     GLuint vao, vbo, ebo;
