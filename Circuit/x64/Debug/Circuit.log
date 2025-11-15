@@ -1,9 +1,2 @@
 ﻿  Car.cpp
-  Circuit.cpp
-  filetobuf.cpp
-  Game.cpp
-  Item.cpp
-  Obstacle.cpp
-  Render.cpp
-  코드를 생성하고 있습니다...
-  Circuit.vcxproj -> C:\Users\82107\Documents\GitHub\Circuit_ServerProject\x64\Debug\Circuit.exe
+LINK : fatal error LNK1104: 'glew32.lib' 파일을 열 수 없습니다.
