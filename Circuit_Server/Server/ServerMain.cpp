@@ -108,6 +108,10 @@ void ServerMain::AcceptClient() {
 			
 			// world에 플레이어 생성
 			world.players.emplace_back(ci.playerID);
+
+			world.players.push_back(Player(ci.playerID));
+			world.AddPlayer(ci.playerID);	// 플레이어 위치 설정 
+
 		}
 
 		int idx = -1;
