@@ -14,7 +14,7 @@ struct ClientInfo {
 	sockaddr_in addr;
 	int playerID = -1;
 	bool connected;
-	std::atomic<uint8_t> button{ 0 };
+	uint8_t button{ 0 };
 };
 
 struct CopyClientInfo {

@@ -107,8 +107,11 @@ void ServerMain::AcceptClient() {
 			ci.playerID = static_cast<int>(world.players.size()); //일단 각 클라마다 ID 할당할 때 주는 방식으로 선정
 			
 			// world에 플레이어 생성
+			world.players.emplace_back(ci.playerID);
+
 			world.players.push_back(Player(ci.playerID));
 			world.AddPlayer(ci.playerID);	// 플레이어 위치 설정 
+
 		}
 
 		int idx = -1;
@@ -224,7 +227,7 @@ DWORD WINAPI ServerMain::NetThread(LPVOID arg) {
 			{
 				std::lock_guard<std::mutex> lg(self->clientsMutex);
 				if (idx >= 0 && idx < (int)self->clients.size() && self->clients[idx].connected) {
-					self->clients[idx].button.store(btn);
+					self->clients[idx].button = btn;
 				}
 			}
 			break;
@@ -276,7 +279,7 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 			inputs.reserve(self->clients.size());
 			for (const auto& c : self->clients) {
 				if (!c.connected) continue;
-				inputs.push_back(InputSnapshot{ c.playerID, c.button.load() });
+				inputs.push_back(InputSnapshot{ c.playerID, c.button });
 			}
 		}
 
@@ -377,7 +380,7 @@ std::optional<CopyClientInfo> ServerMain::GetClient(int id) const {
 	std::lock_guard<std::mutex> lg(clientsMutex);
 	if (id < 0 || id >= static_cast<int>(clients.size())) return std::nullopt;
 	const auto& c = clients[id];
-	return CopyClientInfo{ c.sock,c.addr,c.playerID,c.connected,c.button.load() };
+	return CopyClientInfo{ c.sock,c.addr,c.playerID,c.connected,c.button };
 }
 
 // -------------------------------
@@ -394,7 +397,7 @@ std::vector<CopyClientInfo> ServerMain::GetClientsnapshot() const {
 				c.addr,
 				c.playerID,
 				c.connected,
-				c.button.load()
+				c.button
 				});
 		}
 	}
