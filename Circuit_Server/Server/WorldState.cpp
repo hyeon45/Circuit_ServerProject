@@ -5,10 +5,35 @@
 
 
 WorldState::WorldState()
-    : player(0) // Player ID
 {
     Initialize();
 }
+
+
+// ----------------------------------------
+// 게임 시작 시 플레이어 위치값
+// ----------------------------------------
+void WorldState::AddPlayer(int playerID)
+{
+    // 이미 존재하는 ID는 추가하지 않음
+    for (auto& p : players)
+        if (p.id == playerID)
+            return;
+
+    // 새 플레이어 생성
+    Player p(playerID);
+
+    // ID별 초기 좌표 설정
+    if (playerID == 1) {
+        p.x = 100.0f; p.y = 10.0f; p.z = 1700.0f;
+    }
+    else if (playerID == 2) {
+        p.x = 100.0f; p.y = 10.0f; p.z = 1780.0f;
+    }
+
+    players.push_back(p);
+}
+
 
 // ----------------------------------------
 // 게임 시작 시 초기화
@@ -17,11 +42,6 @@ void WorldState::Initialize()
 {
     float ItemPosy = 5.0f; // 아이템 배치 높이값은 고정
     float obstaclePosy = 10.1f; // 장애물 배치 높이값 고정
-
-    // 플레이어 초기 위치
-    player.x = 100.0f;
-    player.y = 10.0f;
-    player.z = 1780.0f;
 
     // 아이템 배치
     items = {
