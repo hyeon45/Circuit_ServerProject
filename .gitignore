@@ -1,52 +1,57 @@
-# =========================
-# Visual Studio Settings
-# =========================
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# debug information files
+*.dwo
+
 .vs/
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
 *.ipch
-*.VC.db
-*.VC.opendb
-
-# =========================
-# Build folders
-# =========================
-Debug/
-Release/
-x64/
-x86/
-bin/
-obj/
-out/
-
-# =========================
-# Build artifacts
-# =========================
-*.obj
-*.dll
-*.exe
-*.lib
-*.pdb
-*.ilk
-*.idb
+*.db
+*.db-shm
+*.db-wal
+*.vcxproj
+*.filters
+*.log
 *.tlog
 *.lastbuildstate
-*.cache
-*.log
-*.o
-*.out
-
-# =========================
-# Precompiled headers
-# =========================
-*.pch
-*.gch
-
-# =========================
-# Others
-# =========================
-*.d
-*.mod
-*.smod
+*.idb
