@@ -8,6 +8,7 @@
 #include <mutex>
 #include <atomic>
 #include <optional>
+#include "RaceStateManager.h"
 
 struct ClientInfo {
 	SOCKET sock;
@@ -56,6 +57,7 @@ private:
 	mutable std::mutex clientsMutex;
 	WorldState world;
 	PacketHandler* pkt_handler;
+	RaceStateManager raceStateManager;
 	std::atomic<bool> gameStarted{ false };
 	int requiredPlayers = 2;
 };

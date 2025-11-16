@@ -1,6 +1,8 @@
 #pragma once
 #include "WorldState.h"
 
+class PacketHandler;    // 간접 접근
+
 // 레이스 도중 현재 상태에 대한 정의
 enum class RaceState {
     WAITING,
@@ -11,17 +13,23 @@ enum class RaceState {
 
 class RaceStateManager {
 public:
-    RaceStateManager();
+    RaceStateManager(PacketHandler* handler);
 
-    void StartCountdown();                // 경기 시작 전 카운트다운
+    void StartCountdown(float deltaTime);   // 경기 시작 전 카운트다운
     int  CheckFinishLine(WorldState& world); // 결승선 검사
     void EndRace(int winnerID);           // 레이스 종료
 
+    void SetState(RaceState s) { state = s; }   // 다른 파일에서도 설정을 할 수 있게끔.
     RaceState GetState() const { return state; }
 
 private:
     RaceState state;
-    float countdownTimer;
+    PacketHandler* pkt_handler;
+    
+    // 카운트다운 시스템
+    bool countdownStarted;
+    float countdownTime;
+
     int winnerID;
     bool raceEnded;
 };
