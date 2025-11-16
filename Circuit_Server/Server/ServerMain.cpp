@@ -6,14 +6,13 @@ struct NetThreadArg {
 	int index;
 };
 
-ServerMain::ServerMain() {
+ServerMain::ServerMain() : 
+pkt_handler(new PacketHandler(this)),
+	raceStateManager(pkt_handler) {
 	WSADATA wsa;
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
 		err_quit("WSAStartup()");
 	}
-
-	// PacketHandler 가 ServerMain 을 참조할 수 있도록 생성자 추가
-	pkt_handler = new PacketHandler(this);
 }
 
 ServerMain::~ServerMain() {
@@ -149,7 +148,7 @@ void ServerMain::AcceptClient() {
 		CloseHandle(hThread);
 
 		if (shouldSendStart) {
-			pkt_handler->SendGameStart();
+			raceStateManager.SetState(RaceState::COUNTDOWN);
 		}
 	}
 }
@@ -272,6 +271,18 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 
 	while (1) {
 		next += tick;
+
+		// -------------------------
+		// 1. 카운트다운 진행
+		// -------------------------
+		self->raceStateManager.StartCountdown(deltaTime);
+
+		// COUNTDOWN 중에는 물리 처리/입력 무시하는게 자연스러움
+		if (self->raceStateManager.GetState() == RaceState::COUNTDOWN)
+		{
+			std::this_thread::sleep_until(next);
+			continue; // 물리 계산 X
+		}
 
 		std::vector<InputSnapshot> inputs;
 		{

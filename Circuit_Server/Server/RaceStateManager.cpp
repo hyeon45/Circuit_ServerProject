@@ -1,9 +1,12 @@
 #include "RaceStateManager.h"
 #include <iostream>
+#include "PacketHandler.h"
 
-RaceStateManager::RaceStateManager()
-    : state(RaceState::WAITING),
-    countdownTimer(3.0f),
+RaceStateManager::RaceStateManager(PacketHandler* handler)
+    : pkt_handler(handler), 
+    state(RaceState::WAITING),
+    countdownStarted(false),
+    countdownTime(0.0f),
     winnerID(-1),
     raceEnded(false)
 {
@@ -12,9 +15,27 @@ RaceStateManager::RaceStateManager()
 // ---------------------------------------------
 // 1. 카운트다운 시작
 // ---------------------------------------------
-void RaceStateManager::StartCountdown() {
+void RaceStateManager::StartCountdown(float deltaTime) {
+    if (state != RaceState::COUNTDOWN)
+        return;
 
+    // 첫 진입
+    if (!countdownStarted)
+    {
+        countdownStarted = true;
+        countdownTime = 0.0f;
+        printf("[Race] COUNTDOWN START!\n");
+    }
 
+    countdownTime += deltaTime;
+
+    if (countdownTime >= 3.0f)
+    {
+
+        pkt_handler->SendGameStart();
+
+        state = RaceState::PLAYING;
+    }
 }
 
 // ---------------------------------------------
@@ -32,8 +53,8 @@ int RaceStateManager::CheckFinishLine(WorldState& world) {
 
     for (auto& player : world.players)
     {
-        float x = player.position.x;
-        float z = player.position.z;
+        float x = player.x;
+        float z = player.z;
 
         // 결승선 통과 검사
         if (x >= finishXMin && x <= finishXMax &&
@@ -54,10 +75,16 @@ int RaceStateManager::CheckFinishLine(WorldState& world) {
 }
 
 // ---------------------------------------------
-// 3. 경기 종료 처리
+// 3. 경기 종료 처리 (임시)
 // ---------------------------------------------
 void RaceStateManager::EndRace(int winnerID) {
-    
+    raceEnded = true;
+    state = RaceState::FINISH;
+
+    // 다음 경기 준비
+    countdownStarted = false;
+    countdownTime = 0.0f;
+    this->winnerID = winnerID;
 
 
 }
