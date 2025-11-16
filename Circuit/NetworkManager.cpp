@@ -54,3 +54,40 @@ void NetworkManager::Disconnect() {
 		sock = INVALID_SOCKET;
 	}
 }
+
+//---------------------------------
+// Send 패킷 보내기
+//---------------------------------
+bool NetworkManager::SendPacket(const void* pkt, int size)
+{
+    if (sock == INVALID_SOCKET)
+        return false;
+
+    int retval = send(sock, (const char*)pkt, size, 0);
+
+    if (retval == SOCKET_ERROR) {
+        err_quit("send_fail()");
+        return false;
+    }
+
+    // 보낸 크기와 패킷 크기가 다르면 문제
+    if (retval != size) {
+        err_quit("pkt_size()");
+        return false;
+    }
+        
+    return true;
+}
+
+//---------------------------------
+// PKT_CarMove 패킷 생성 및 보내기
+//---------------------------------
+bool NetworkManager::SendCarMove(int playerID, uint8_t button)
+{
+    PKT_CarMove pkt{};
+    pkt.type = PKT_CAR_MOVE;
+    pkt.playerID = playerID;
+    pkt.button = button;
+
+    return SendPacket(&pkt, sizeof(pkt));
+}
