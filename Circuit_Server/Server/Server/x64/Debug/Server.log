@@ -1,8 +1,0 @@
-﻿  PacketHandler.cpp
-  Player.cpp
-  ServerMain.cpp
-  WorldState.cpp
-C:\Users\82107\Documents\GitHub\Circuit_ServerProject\Circuit_Server\Server\ServerMain.cpp(121,46): error C2065: 'idx': 선언되지 않은 식별자입니다.
-C:\Users\82107\Documents\GitHub\Circuit_ServerProject\Circuit_Server\Server\ServerMain.cpp(127,12): error C2065: 'idx': 선언되지 않은 식별자입니다.
-C:\Users\82107\Documents\GitHub\Circuit_ServerProject\Circuit_Server\Server\ServerMain.cpp(128,12): error C2065: 'idx': 선언되지 않은 식별자입니다.
-  코드를 생성하고 있습니다...

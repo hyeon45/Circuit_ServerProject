@@ -1,57 +1,83 @@
-# Prerequisites
-*.d
+##############################
+# Visual Studio build ignore
+##############################
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Build output folders
+x64/
+Debug/
+Release/
+bin/
+obj/
 
-# Precompiled Headers
-*.gch
-*.pch
+# Visual Studio cache
+.vs/
+*.VC.db
+*.VC.opendb
 
-# Linker files
-*.ilk
-
-# Debugger Files
-*.pdb
-
-# Compiled Dynamic libraries
+# Compiled binaries
+*.dll
+*.exe
+*.lib
+*.a
 *.so
 *.dylib
-*.dll
 
-# Fortran module files
+# Compiler intermediates
+*.obj
+*.o
+*.lo
+*.slo
+*.idb
+*.pdb
 *.mod
 *.smod
+*.tlog
+*.lastbuildstate
+*.ilk
+*.pch
+*.gch
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
+# Logs
+*.log
 
-# Executables
-*.exe
-*.out
-*.app
-
-# debug information files
-*.dwo
-
-.vs/
+# User-specific VS settings
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+
+# Precompiled headers
 *.ipch
+
+# DB/Cache files
 *.db
 *.db-shm
 *.db-wal
+<<<<<<< Updated upstream
 *.vcxproj
 *.filters
 *.log
 *.tlog
 *.lastbuildstate
 *.idb
+=======
+
+# Ignore derived files
+*.d
+*.dwo
+*.app
+*.out
+
+##############################
+# DO NOT IGNORE THESE FILES!
+##############################
+# Project files MUST be committed
+# (팀원이 프로젝트를 열 수 있도록 유지해야 함)
+# 예:
+# *.sln
+# *.vcxproj
+# *.filters
+# *.props
+# *.targets
+##############################
+>>>>>>> Stashed changes
