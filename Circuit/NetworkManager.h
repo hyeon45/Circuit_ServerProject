@@ -2,6 +2,7 @@
 #include "Common.h"  
 #include "CarPacketClient.h"
 
+
 class NetworkManager {
 public:
     NetworkManager();
@@ -18,4 +19,11 @@ public:
 
 private:
     SOCKET sock; // 클라 소켓 저장 
+
+    // Recv 전용 스레드 관련
+    HANDLE hRecvThread = nullptr;
+    std::atomic<bool> running{ false };
+
+    static DWORD WINAPI RecvThread(LPVOID arg);  // 스레드 함수
+
 };

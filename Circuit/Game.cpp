@@ -11,6 +11,12 @@ Game::Game() : playerID(-1) {
 // 프로그램 실행
 // -------------------------
 void Game::Run(int argc, char** argv) {
+
+    if (!networkManager.Connect()) {
+        printf("서버 연결 실패...\n");
+        return;   // 연결 안 되면 게임 실행 안 함
+    }
+
     srand(static_cast<unsigned int>(time(NULL)));
 
     glutInit(&argc, argv);
@@ -119,4 +125,18 @@ void Game::SpecialKeyCallback(int key, int x, int y) {
 
 void Game::SpecialKeyUpCallback(int key, int x, int y) {
     instance->car.HandleSpecialKey(key, false);
+}
+
+// -------------------------
+// 서버에서 worldsync 받았을 때 호출해서 적용시킴
+// -------------------------
+void Game::OnWorldSync(const PKT_WorldSync& pkt) 
+{
+    // 일단 내 플레이어만 반영
+    //if (pkt.playerID != playerID) return;
+
+    //car.SetPosition(pkt.posx, pkt.posy, pkt.posz);
+    //car.SetYaw(pkt.yaw);
+    //car.SetScale(pkt.scale);
+    //car.SetShield(pkt.shield != 0);
 }

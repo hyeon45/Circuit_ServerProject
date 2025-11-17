@@ -12,11 +12,15 @@
 class Game {
 public:
     Game();   // 처음엔 미할당 상태
+    static Game* GetInstance() { return instance; }
     void Run(int argc, char** argv);
 
     // 서버에서 playerid 받아서 저장
     void SetPlayerID(int id) { playerID = id; }
     int  GetPlayerID() const { return playerID; }
+
+    // 서버에서 WorldSync를 받았을 때 호출될 함수
+    void OnWorldSync(const PKT_WorldSync& pkt);
 
 private:
     int playerID;

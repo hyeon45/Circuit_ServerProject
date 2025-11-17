@@ -38,6 +38,11 @@ public:
     void SetScale(float newScale);
     float GetScale() const;
 
+    // 서버에서 받은 값 set 해주기
+    void SetPosition(float x, float y, float z);
+    void SetYaw(float newYaw);
+    void SetShield(bool active);
+
     // 현재 입력 상태 체크
     uint8_t GetInputMask() const;
 

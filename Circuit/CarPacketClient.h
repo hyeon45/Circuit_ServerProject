@@ -20,4 +20,33 @@ struct PKT_CarMove {
 	uint8_t button;
 };
 
+// =======================
+// [ Server → Client ]
+// =======================
+
+struct PKT_GameStart {
+	uint16_t type = PKT_GAME_START;
+	int playerID;
+};
+
+struct PKT_ItemDelete {
+	uint16_t type = PKT_ITEM_DELETE;
+	int itemID;
+	float posx, posy, posz;
+};
+
+struct PKT_WorldSync {
+	uint16_t type = PKT_WORLD_SYNC;
+	int playerID;
+	float posx, posy, posz;
+	float yaw;
+	float    scale;     // 추가
+	uint8_t  shield;    // 추가 (0/1)
+};
+
+struct PKT_GameResult {
+	uint16_t type = PKT_GAME_RESULT;
+	int winnerID;
+};
+
 #pragma pack(pop)

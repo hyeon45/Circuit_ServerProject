@@ -1,4 +1,5 @@
 #include "NetworkManager.h"
+#include "Game.h"
 
 char* SERVERIP = (char*)"127.0.0.1";
 int SERVERPORT = 9000;
@@ -15,7 +16,6 @@ NetworkManager::NetworkManager() : sock(INVALID_SOCKET) {
 //---------------------------------
 NetworkManager::~NetworkManager() {
 	Disconnect();
-	WSACleanup();
 }
 
 //---------------------------------
@@ -37,9 +37,18 @@ bool NetworkManager::Connect() {
     inet_pton(AF_INET, SERVERIP, &serveraddr.sin_addr);
     serveraddr.sin_port = htons(SERVERPORT);
 
-    int ret = connect(sock, (sockaddr*)&serveraddr, sizeof(serveraddr));
-    if (ret == SOCKET_ERROR)
+    int retval = connect(sock, (sockaddr*)&serveraddr, sizeof(serveraddr));
+    if (retval == SOCKET_ERROR)
         return false;
+
+    // Recv 스레드 생성
+    running = true;
+    hRecvThread = CreateThread(nullptr, 0, &NetworkManager::RecvThread, this, 0, nullptr);
+    if (hRecvThread == nullptr) {
+        running = false;
+        err_display("CreateThread(RecvThread)");
+        return false;
+    }
 
     return true;
 }
@@ -49,10 +58,21 @@ bool NetworkManager::Connect() {
 //---------------------------------
 void NetworkManager::Disconnect() {
 
-	if (sock != INVALID_SOCKET) {
-		closesocket(sock);
-		sock = INVALID_SOCKET;
-	}
+    // 스레드 정지 요청
+    running = false;
+
+    if (sock != INVALID_SOCKET) {
+        closesocket(sock);
+        sock = INVALID_SOCKET;
+    }
+
+    if (hRecvThread) {
+        WaitForSingleObject(hRecvThread, INFINITE);
+        CloseHandle(hRecvThread);
+        hRecvThread = nullptr;
+    }
+
+    WSACleanup();
 }
 
 //---------------------------------
@@ -90,4 +110,45 @@ bool NetworkManager::SendCarMove(int playerID, uint8_t button)
     pkt.button = button;
 
     return SendPacket(&pkt, sizeof(pkt));
+}
+
+//---------------------------------
+// RecvThread 함수
+//---------------------------------
+DWORD WINAPI NetworkManager::RecvThread(LPVOID arg) 
+{
+    NetworkManager* self = static_cast<NetworkManager*>(arg);
+
+    while (self->running) {
+        PKT_WorldSync pkt{};
+        int retval = recv(self->sock, reinterpret_cast<char*>(&pkt), sizeof(pkt), 0);
+
+        if (retval == 0) {
+            self->running = false;
+            break;
+        }
+
+        if (retval == SOCKET_ERROR) {
+            int err = WSAGetLastError();
+            if (!self->running)
+                break;
+            err_display("recv()");
+            self->running = false;
+            break;
+        }
+
+        if (retval != sizeof(pkt)) { // 나중에 추가
+            continue;
+        }
+
+        if (pkt.type != PKT_WORLD_SYNC) { // 얘도 나중에 늘어나면 swtich로 추가
+            continue;
+        }
+
+        if(Game::GetInstance()){
+            Game::GetInstance()->OnWorldSync(pkt);
+        }
+    }
+
+    return 0;
 }
