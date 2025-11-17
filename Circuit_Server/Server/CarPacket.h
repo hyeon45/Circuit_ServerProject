@@ -17,6 +17,7 @@ enum : uint16_t {
 
 struct PKT_GameStart {
 	uint16_t type = PKT_GAME_START;
+	int playerID;
 };
 
 struct PKT_ItemDelete {
