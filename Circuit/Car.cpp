@@ -174,3 +174,18 @@ void Car::SetScale(float newScale) {
 float Car::GetScale() const {
     return scale;
 }
+
+//-------------------------------
+// 현재 입력을 mask하기 
+//-------------------------------
+uint8_t Car::GetInputMask() const
+{
+    uint8_t mask = 0;
+
+    if (movingForward)  mask |= 0x01;
+    if (movingBackward) mask |= 0x02;
+    if (turningLeft)    mask |= 0x04;
+    if (turningRight)   mask |= 0x08;
+
+    return mask;
+}

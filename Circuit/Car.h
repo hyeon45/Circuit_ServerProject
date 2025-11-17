@@ -38,6 +38,9 @@ public:
     void SetScale(float newScale);
     float GetScale() const;
 
+    // 현재 입력 상태 체크
+    uint8_t GetInputMask() const;
+
 private:
     // 차량 상태
     glm::vec3 position;

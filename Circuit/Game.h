@@ -7,18 +7,26 @@
 #include "Obstacle.h"
 #include "Item.h"
 #include "Render.h"
+#include "NetworkManager.h"
 
 class Game {
 public:
-    Game();
+    Game() : playerID(-1) {}   // 처음엔 미할당 상태
     void Run(int argc, char** argv);
 
+    // 서버에서 playerid 받아서 저장
+    void SetPlayerID(int id) { playerID = id; }
+    int  GetPlayerID() const { return playerID; }
+
 private:
+    int playerID;
+
     // --- 객체 ---
     Renderer renderer;
     Car car;
     ObstacleManager obstacles;
     ItemManager items;
+    NetworkManager networkManager;
 
     // --- 상태 변수 ---
     static Game* instance;
