@@ -123,7 +123,7 @@ bool WorldState::RemoveItem(int itemID, Item& removedOut)
 // ----------------------------------------
 void WorldState::SyncPlayers()
 {
-
+    
 }
 
 // ----------------------------------------
@@ -202,7 +202,47 @@ void WorldState::DetectItemCollisions(std::vector<CollisionInfo>& outPicked)
 // ----------------------------------------
 void WorldState::ObsCollisionCheck(int playerID)
 {
+    Player& p = players[playerID];
 
+    // 플레이어 충돌 반경 계산
+    float basePlayerRadius = 20.0f;               // 기본 충돌 반경
+    float playerRadius = basePlayerRadius * p.scale;
+
+    for (auto& ob : obstacles)
+    {
+        float dx = p.x - ob.x;
+        float dz = p.z - ob.z;
+
+        float distSq = dx * dx + dz * dz;
+
+        float collideDist = playerRadius + ob.radius;
+
+        if (distSq < collideDist * collideDist)
+        {
+            // 1회 충돌 무시
+            if (p.shield)
+            {
+                p.scale = 1.0f;
+                p.shield = false;
+                continue;
+            }
+
+            float dist = sqrt(distSq);
+            if (dist < 0.0001f) dist = 0.0001f;
+
+            // 정규화 방향 벡터(장애물 → 플레이어)
+            float nx = dx / dist;
+            float nz = dz / dist;
+
+            // 겹친 만큼 튕겨내기
+            float push = (collideDist - dist);
+            p.x += nx * push;
+            p.z += nz * push;
+
+            // 속도 중단
+            p.speed = 0.0f;
+        }
+    }
 }
 
 // ----------------------------------------
