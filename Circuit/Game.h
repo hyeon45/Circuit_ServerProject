@@ -11,7 +11,7 @@
 
 class Game {
 public:
-    Game() : playerID(-1) {}   // 처음엔 미할당 상태
+    Game();   // 처음엔 미할당 상태
     void Run(int argc, char** argv);
 
     // 서버에서 playerid 받아서 저장

@@ -3,7 +3,7 @@
 // 정적 멤버 초기화
 Game* Game::instance = nullptr;
 
-Game::Game() {
+Game::Game() : playerID(-1) {
     instance = this;
 }
 
