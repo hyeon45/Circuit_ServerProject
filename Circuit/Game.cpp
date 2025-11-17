@@ -60,6 +60,12 @@ void Game::Update(float dt) {
     obstacles.Collision(car);
     items.Collision(car);
 
+    uint8_t button = car.GetInputMask();
+
+    if (playerID >= 0) { // 서버에서 start와 id 받으면 시작
+        networkManager.SendCarMove(playerID, button);
+    }
+    
     if (gameRunning) {
         gameTime += dt;
     }
