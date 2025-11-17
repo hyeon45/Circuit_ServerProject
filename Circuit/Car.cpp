@@ -167,10 +167,6 @@ void Car::ResetToCheckpoint() {
     }
 }
 
-void Car::SetScale(float newScale) {
-    scale = newScale;
-}
-
 float Car::GetScale() const {
     return scale;
 }
@@ -188,4 +184,28 @@ uint8_t Car::GetInputMask() const
     if (turningRight)   mask |= 0x08;
 
     return mask;
+}
+
+//-------------------------------
+// 서버에서 받은 입력 적용
+//-------------------------------
+void Car::SetPosition(float x, float y, float z) 
+{
+    position.x = x;
+    position.y = y;
+    position.z = z;
+}
+
+void Car::SetYaw(float newYaw) 
+{
+    yaw = newYaw;
+}
+
+void Car::SetShield(bool active) 
+{
+    shield = active;
+}
+
+void Car::SetScale(float newScale) {
+    scale = newScale;
 }
