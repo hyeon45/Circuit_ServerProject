@@ -90,6 +90,22 @@ void WorldState::Initialize()
         {19,860.0f,  obstaclePosy, 1520.0f, 20.0f}
     };
 
+    // 맵 충돌박스 생성
+    roadBounds = {
+        {40.0f, 160.0f, 490.0f, 1800.0f},
+        {40.0f, 390.0f, 490.0f, 620.0f},
+        {250.0f, 390.0f, 490.0f, 1800.0f},
+        {250.0f, 1940.0f, 1680.0f, 1800.0f},
+        {1820.0f, 1940.0f, 300.0f, 1800.0f},
+        {1150.0f, 1940.0f, 300.0f, 420.0f},
+        {1150.0f, 1250.0f, 300.0f, 1260.0f},
+        {800.0f, 1250.0f, 1170.0f, 1260.0f},
+        {800.0f, 920.0f, 70.0f, 1260.0f},
+        {590.0f, 920.0f, 70.0f, 200.0f},
+        {590.0f, 710.0f, 70.0f, 1540.0f},
+        {590.0f, 1140.0f, 1440.0f, 1540.0f}
+    };
+
     // ----------------------------------------
     // 아이템 타입 랜덤 지정
     // ----------------------------------------
@@ -255,4 +271,61 @@ ItemType WorldState::GetItemType(int itemID)
             return item.type;
     }
     return ItemType::None;
+}
+
+// ----------------------------------------
+// 도로 밖 주행 여부 체크
+// ----------------------------------------
+bool WorldState::IsInsideRoad(float x, float z)
+{
+    for (auto& b : roadBounds)
+    {
+        if (x >= b.minX && x <= b.maxX &&
+            z >= b.minZ && z <= b.maxZ)
+            return true;
+    }
+    return false;
+}
+
+// ----------------------------------------
+// 도로 밖 주행 충돌 여부
+// ---------------------------------------- 
+void WorldState::RoadBoundaryCollision(int playerID)
+{
+    Player& p = players[playerID];
+
+    float x = p.x;
+    float z = p.z;
+
+    // 도로 안에 있으면 충돌 없음
+    if (IsInsideRoad(x, z)) return;
+
+    float bestDist = FLT_MAX;
+    float bestX = x;
+    float bestZ = z;
+
+    // 모든 도로 바운더리를 검사
+    for (auto& b : roadBounds)
+    {
+        float clampedX = std::clamp(x, b.minX, b.maxX);
+        float clampedZ = std::clamp(z, b.minZ, b.maxZ);
+
+        float dx = x - clampedX;
+        float dz = z - clampedZ;
+        float distSq = dx * dx + dz * dz;
+
+        if (distSq < bestDist)
+        {
+            bestDist = distSq;
+            bestX = clampedX;
+            bestZ = clampedZ;
+        }
+    }
+
+    // 가장 가까운 “도로 안쪽 위치”로 밀기
+    p.x = bestX;
+    p.z = bestZ;
+
+    // 속도 0으로 멈춤
+    p.speed = 0.0f;
 }

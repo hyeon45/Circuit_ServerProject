@@ -261,7 +261,8 @@ struct InputSnapshot {
 // -------------------------------
 // 물리 스레드
 // -------------------------------
-DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
+DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg)
+{
 	ServerMain* self = (ServerMain*)arg;
 
 	using clock = std::chrono::steady_clock;
@@ -269,87 +270,107 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg) {
 	const auto tick = std::chrono::milliseconds(16); // 60fps
 	const float deltaTime = 1.0f / 60.0f;
 
-	while (1) {
+	while (1)
+	{
 		next += tick;
 
-		// -------------------------
-		// 1. 카운트다운 진행
-		// -------------------------
+		// 1) 카운트다운 처리
 		self->raceStateManager.StartCountdown(deltaTime);
 
-		// COUNTDOWN 중에는 물리 처리/입력 무시하는게 자연스러움
 		if (self->raceStateManager.GetState() == RaceState::COUNTDOWN)
 		{
 			std::this_thread::sleep_until(next);
-			continue; // 물리 계산 X
+			continue;
 		}
 
+		// 2) 입력 수집 (mutex 보호)
 		std::vector<InputSnapshot> inputs;
 		{
 			std::lock_guard<std::mutex> cg(self->clientsMutex);
-			inputs.reserve(self->clients.size());
-			for (const auto& c : self->clients) {
+			for (const auto& c : self->clients)
+			{
 				if (!c.connected) continue;
-				inputs.push_back(InputSnapshot{ c.playerID, c.button });
+				inputs.push_back({ c.playerID, c.button });
 			}
 		}
 
+		// 모든 월드 연산은 worldMutex 안에서
 		std::vector<CollisionInfo> picked;
-		int winner = -1; // CheckFinsh() 만들면 추가
+		int winner = -1;
+
 		{
 			std::lock_guard<std::mutex> lg(self->worldMutex);
 
-			// 입력 반영
-			for (const auto& in : inputs) {
-				const int pid = in.playerID;
-				if (pid >= 0 && pid < (int)self->world.players.size()) {
-					self->world.ApplyInput(pid, in.button);
-				}
+			// 3) 입력 반영
+			for (auto& in : inputs)
+			{
+				if (in.playerID >= 0 && in.playerID < (int)self->world.players.size())
+					self->world.ApplyInput(in.playerID, in.button);
 			}
 
-			// 물리 적분,스텝
-			self->world.StepPhysics(1.0f / 60.0f);
+			// 4) 물리 스텝
+			self->world.StepPhysics(deltaTime);
 
-			// 충돌 아이템 판정
-			
+			// 5)도로 경계 충돌
+			for (int pid = 0; pid < self->world.players.size(); pid++)
+				self->world.RoadBoundaryCollision(pid);
+
+			// 6) 장애물 충돌 처리
+			for (int pid = 0; pid < self->world.players.size(); pid++)
+				self->world.ObsCollisionCheck(pid);
+
+			// 7) 아이템 충돌 판정
 			self->world.DetectItemCollisions(picked);
 
-			// 아이템 지속 효과 적용 및 지속시간 갱신
-			for (auto& player : self->world.players) {
-				player.UpdateEffect(deltaTime);  // 지속시간 관리 (3초, 5초 등)
-			}
+			// 8) 플레이어 효과 타이머 업데이트
+			for (auto& p : self->world.players)
+				p.UpdateEffect(deltaTime);
 
-			// winner - self->world.CheckFinish(); // 아직 미구현
-			
+			// 9) 결승선 판정
+			winner = self->raceStateManager.CheckFinishLine(self->world);
+
+			// 10) 월드 상태 최종 동기화 (현재 값 없음. -> 이미 최신 상태로 다 갱신하고 있기 때문)
+			self->world.SyncPlayers();
 		}
-		for (const auto& e : picked) {
-			ItemType itemType = ItemType::None;
+
+		// 11) 아이템 충돌 처리 (삭제 + 효과 적용)
+		for (auto& e : picked)
+		{
+			ItemType type;
+
+			// 삭제 전 타입 조회
 			{
 				std::lock_guard<std::mutex> lg(self->worldMutex);
-				ItemType itemType = self->world.GetItemType(e.itemID);	//삭제 전 조회
+				type = self->world.GetItemType(e.itemID);
 			}
 
+			// 삭제 (PKT_ITEM_DELETE 전송 포함)
 			self->ProcessItemDelete(e.playerID, e.itemID);
 
-			if (itemType != ItemType::None &&e.playerID >= 0 && e.playerID < (int)self->world.players.size()) {
-				self->world.players[e.playerID].ApplyItemEffect(itemType);
+			// 효과 적용
+			if (type != ItemType::None)
+			{
+				std::lock_guard<std::mutex> lg(self->worldMutex);
+				self->world.players[e.playerID].ApplyItemEffect(type);
 			}
 		}
 
-
-		if (winner >= 0) {
+		// 12) 승자 처리
+		if (winner >= 0)
 			self->BroadcastFinalResult();
-		}
 
+		// 13) 월드 패킷 전송
 		self->pkt_handler->SendWorldState();
 
-		// 틱 시간 보정. 다음 프레임 목표까지 쉼.
+		// -----------------------------------------
+		// 다음 tick까지 대기
+		// -----------------------------------------
 		std::this_thread::sleep_until(next);
-		
 	}
+
 	return 0;
-	
 }
+
 
 // -------------------------------
 // 아이템 삭제 처리
