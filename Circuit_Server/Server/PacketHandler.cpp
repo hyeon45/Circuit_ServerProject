@@ -28,8 +28,14 @@ void PacketHandler::ProcessCarMove(int playerID, const PKT_CarMove& pkt) {
 // PKT_ITEM_DELETE 패킷을 <전송 실제 삭제는 WorldState::RemoveItem에서 수행>
 // -------------------------------------------------------------------------
 void PacketHandler::ItemDelete(const PKT_ItemDelete& pkt) {
-	
 
+    const auto clients = server_->GetClientsnapshot();
+    for (const auto& ci : clients) {
+        int retval = send(ci.sock, reinterpret_cast<const char*>(&pkt), sizeof(pkt), 0);
+        if (retval == SOCKET_ERROR) {
+            err_display("send() - PKT_ITEM_DELETE");
+        }
+    }
 }
 
 // -------------------------------------------------------------------------

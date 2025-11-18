@@ -1,7 +1,7 @@
 #include "NetworkManager.h"
 #include "Game.h"
 
-char* SERVERIP = (char*)"127.0.0.1";
+char* SERVERIP = (char*)"192.168.65.41";
 int SERVERPORT = 9000;
 
 //---------------------------------
