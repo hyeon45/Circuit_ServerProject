@@ -35,6 +35,7 @@ void RaceStateManager::StartCountdown(float deltaTime) {
         pkt_handler->SendGameStart();
 
         state = RaceState::PLAYING;
+        printf("[Race] GAME START!\n");
     }
 }
 

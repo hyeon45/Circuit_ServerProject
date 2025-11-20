@@ -52,5 +52,4 @@ private:
     static void KeyboardCallback(unsigned char key, int x, int y);
     static void SpecialKeyCallback(int key, int x, int y);
     static void SpecialKeyUpCallback(int key, int x, int y);
-    static void KeyboardUpCallback(unsigned char key, int x, int y);
 };
