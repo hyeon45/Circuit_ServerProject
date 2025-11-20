@@ -6,17 +6,21 @@
 #include <iostream>
 #include "Car.h"
 
+struct ItemData {
+    int id;
+    glm::vec3 pos;
+};
+
 class ItemManager {
 public:
      ItemManager();
 
     void Init();
     void Draw(GLuint shaderProgram) const;
-    void Collision(Car& car);
+    void RemoveItem(int itemID);
+
+    std::vector<ItemData> item;
 
 private:
     GLuint vao, vbo, ebo;
-    std::vector<glm::vec3> positions;
-
-    void RemoveItem(size_t index);
 };

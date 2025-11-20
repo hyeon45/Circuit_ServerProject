@@ -20,12 +20,7 @@ public:
     void Draw(GLuint shaderProgram) const;
 
     // 입력 처리
-    void HandleKeyboard(unsigned char key, bool pressed);
     void HandleSpecialKey(int key, bool pressed);
-
-    // 아이템 관련
-    void ApplyItemEffect(ItemType type);
-    void ResetToCheckpoint();
 
     // Getter
     glm::vec3 GetPosition() const { return position; }
@@ -36,7 +31,6 @@ public:
     void StopMovement() { speed = 0.0f; }
 
     void SetScale(float newScale);
-    float GetScale() const;
 
     // 서버에서 받은 값 set 해주기
     void SetPosition(float x, float y, float z);
@@ -68,12 +62,4 @@ private:
 
     // 렌더링용 버퍼
     GLuint vao, vbo, ebo;
-
-    // 체크포인트
-    std::vector<glm::vec3> checkpoints;
-    int lastCheckpoint;
-
-    // 내부 함수
-    void Move(float dt);
-    void Rotate(float dt);
 };

@@ -59,5 +59,8 @@ private:
 	PacketHandler* pkt_handler;
 	RaceStateManager raceStateManager;
 	std::atomic<bool> gameStarted{ false };
-	int requiredPlayers = 2;
+
+	// 테스팅용 / 실제 용도
+	// int requiredPlayers = 2;
+	int requiredPlayers = 1;
 };

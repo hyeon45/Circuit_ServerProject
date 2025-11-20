@@ -36,7 +36,6 @@ void Game::Run(int argc, char** argv) {
     glutDisplayFunc(DisplayCallback);
     glutReshapeFunc(ReshapeCallback);
     glutKeyboardFunc(KeyboardCallback);
-    glutKeyboardUpFunc(KeyboardUpCallback);
     glutSpecialFunc(SpecialKeyCallback);
     glutSpecialUpFunc(SpecialKeyUpCallback);
     glutTimerFunc(16, TimerCallback, 0);
@@ -61,11 +60,6 @@ void Game::Initialize() {
 // 매 프레임 업데이트
 // -------------------------
 void Game::Update(float dt) {
-    // 차량, 장애물, 아이템 갱신
-    car.Update(dt);
-    obstacles.Collision(car);
-    items.Collision(car);
-
     uint8_t button = car.GetInputMask();
 
     if (playerID >= 0) { // 서버에서 start와 id 받으면 시작
@@ -111,13 +105,8 @@ void Game::ReshapeCallback(int w, int h) {
 
 void Game::KeyboardCallback(unsigned char key, int x, int y) {
     if (key == 27) glutLeaveMainLoop(); // ESC 종료
-    else if (key == 'r') instance->car.ResetToCheckpoint();
-    else instance->car.HandleKeyboard(key, true);
 }
 
-void Game::KeyboardUpCallback(unsigned char key, int x, int y) {
-    instance->car.HandleKeyboard(key, false);
-}
 
 void Game::SpecialKeyCallback(int key, int x, int y) {
     instance->car.HandleSpecialKey(key, true);
@@ -133,10 +122,10 @@ void Game::SpecialKeyUpCallback(int key, int x, int y) {
 void Game::OnWorldSync(const PKT_WorldSync& pkt) 
 {
     // 일단 내 플레이어만 반영
-    //if (pkt.playerID != playerID) return;
+    if (pkt.playerID != playerID) return;
 
-    //car.SetPosition(pkt.posx, pkt.posy, pkt.posz);
-    //car.SetYaw(pkt.yaw);
-    //car.SetScale(pkt.scale);
-    //car.SetShield(pkt.shield != 0);
+    car.SetPosition(pkt.posx, pkt.posy, pkt.posz);
+    car.SetYaw(pkt.yaw);
+    car.SetScale(pkt.scale);
+    car.SetShield(pkt.shield != 0);
 }
