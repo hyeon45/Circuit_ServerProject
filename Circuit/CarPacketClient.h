@@ -10,6 +10,16 @@ enum : uint16_t {
 	PKT_GAME_RESULT = 0x1005
 };
 
+// 서버가 쓰는 것과 동일하게 맞춰야 함
+struct PKT_HEADER {
+	uint16_t type;
+	uint16_t size;
+};
+// 임시 확인용
+struct PKT_CarMoveBody {
+	uint8_t button;
+};
+
 // =======================
 // [ Client → Server ]
 // =======================

@@ -23,8 +23,8 @@ public:
     void HandleSpecialKey(int key, bool pressed);
 
     // Getter
-    glm::vec3 GetPosition() const { return position; }
-    float GetYaw() const { return yaw; }
+    glm::vec3 GetPosition() const { return renderPosition; }
+    float GetYaw() const { return renderYaw; }
 
     bool IsShieldActive() const { return shield; }
     void DisableShield() { shield = false; }
@@ -42,8 +42,13 @@ public:
 
 private:
     // 차량 상태
-    glm::vec3 position;
-    float yaw;
+    glm::vec3 serverPosition;  // 서버에서 받은 실제 위치
+    glm::vec3 renderPosition;  // 화면에 그릴 위치
+
+    float serverYaw;
+    float renderYaw;
+
+    //float yaw;
     float speed;
     float acceleration;
     float maxSpeed;
@@ -51,10 +56,10 @@ private:
     bool shield;
 
     // 키 입력 상태
-    bool movingForward;
-    bool movingBackward;
-    bool turningLeft;
-    bool turningRight;
+    bool movingForward = false;
+    bool movingBackward = false;
+    bool turningLeft = false;
+    bool turningRight = false;
 
     // 아이템 효과 지속 시간
     float speedBoostTimer;

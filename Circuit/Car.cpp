@@ -2,8 +2,10 @@
 #include <GL/freeglut.h>
 
 Car::Car()
-    : position(100.0f, 10.0f, 1780.0f),
-    yaw(0.0f),
+    : serverPosition(100.0f, 10.0f, 1780.0f),
+    renderPosition(serverPosition),
+    serverYaw(0.0f),
+    renderYaw(0.0f),
     scale(1.0f),
     shield(false)
 {
@@ -63,8 +65,9 @@ void Car::Draw(GLuint shaderProgram) const {
     if (objectColorLoc != -1) glUniform3f(objectColorLoc, 1.0f, 0.0f, 0.0f);
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
-    model = glm::rotate(model, -yaw, glm::vec3(0, 1, 0));
+    glm::vec3 pos = renderPosition;
+    model = glm::translate(model, pos);
+    model = glm::rotate(model, -renderYaw, glm::vec3(0, 1, 0));
     model = glm::scale(model, glm::vec3(30.0f * scale, 5.0f * scale, 50.0f * scale));
 
     GLuint modelLoc = glGetUniformLocation(shaderProgram, "modelTransform");
@@ -104,14 +107,15 @@ uint8_t Car::GetInputMask() const
 //-------------------------------
 void Car::SetPosition(float x, float y, float z) 
 {
-    position.x = x;
-    position.y = y;
-    position.z = z;
+    serverPosition.x = x;
+    serverPosition.y = y;
+    serverPosition.z = z;
+    //std::cout << "x: " << x << "," << "y: " << y << "," << "z: " << z << std::endl;
 }
 
 void Car::SetYaw(float newYaw) 
 {
-    yaw = newYaw;
+    serverYaw = newYaw;
 }
 
 void Car::SetShield(bool active) 
@@ -121,4 +125,19 @@ void Car::SetShield(bool active)
 
 void Car::SetScale(float newScale) {
     scale = newScale;
+}
+
+void Car::Update(float dt)
+{
+    // 부드러움 정도 조절용 상수 (값 키우면 더 빨리 따라감)
+    const float smooth = 10.0f;
+
+    // 위치 보간: renderPos가 serverPos 쪽으로 천천히 이동
+    float alpha = smooth * dt;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    renderPosition = glm::mix(renderPosition, serverPosition, alpha);
+
+    // yaw도 비슷하게 (단순 보간, 각도 wrap 처리는 나중에 필요하면 추가)
+    renderYaw = renderYaw + (serverYaw - renderYaw) * alpha;
 }
