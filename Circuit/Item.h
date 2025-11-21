@@ -17,7 +17,7 @@ public:
 
     void Init();
     void Draw(GLuint shaderProgram) const;
-    void RemoveItem(int itemID);
+    void ApplyItemDelete(int itemID); // itemID∑Œ ªË¡¶
 
     std::vector<ItemData> item;
 

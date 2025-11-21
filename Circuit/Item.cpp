@@ -87,12 +87,22 @@ void ItemManager::Draw(GLuint shaderProgram) const {
     glBindVertexArray(0);
 }
 
-void ItemManager::RemoveItem(int itemID) {
-    item.erase(
-        std::remove_if(item.begin(), item.end(),
-            [&](const ItemData& item) {
-                return item.id == itemID;
-            }),
-        item.end()
-    );
+// -------------------------------------------------
+// ProcessItemDelete에서 받은 itemID 로 로컬 아이템 삭제
+// -------------------------------------------------
+void ItemManager::ApplyItemDelete(int itemID)
+{
+    auto it = std::find_if(item.begin(), item.end(),
+        [itemID](const ItemData& d) {
+            return d.id == itemID;
+        });
+
+    if (it == item.end()) {
+        std::cout << "Item not found on client. id = " << itemID << "\n";
+        return;
+    }
+
+    item.erase(it);
+
+    std::cout << "Item removed on client. id = " << itemID << "\n";
 }
