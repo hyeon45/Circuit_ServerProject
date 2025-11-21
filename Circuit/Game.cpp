@@ -60,12 +60,21 @@ void Game::Initialize() {
 // 매 프레임 업데이트
 // -------------------------
 void Game::Update(float dt) {
+
+    // 1) 서버 목표 위치 쪽으로 렌더 위치를 한 번 당겨주기
+    car.Update(dt);
+
+    if (playerID < 0) {
+        return;
+    }
+
     uint8_t button = car.GetInputMask();
 
-    if (playerID >= 0) { // 서버에서 start와 id 받으면 시작
-        networkManager.SendCarMove(playerID, button);
-    }
-    
+    //if (playerID >= 0) { // 서버에서 start와 id 받으면 시작
+    //    
+    //}
+    networkManager.SendCarMove(playerID, button);
+   
     if (gameRunning) {
         gameTime += dt;
     }
@@ -123,7 +132,9 @@ void Game::OnWorldSync(const PKT_WorldSync& pkt)
 {
     // 일단 내 플레이어만 반영
     if (pkt.playerID != playerID) return;
-
+    if (pkt.playerID == playerID)
+        std::cout << "x: " << pkt.posx << "," << "y: " << pkt.posy << "," << "z: " << pkt.posz << std::endl;
+    
     car.SetPosition(pkt.posx, pkt.posy, pkt.posz);
     car.SetYaw(pkt.yaw);
     car.SetScale(pkt.scale);

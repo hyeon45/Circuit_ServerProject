@@ -16,7 +16,7 @@ public:
     void Run(int argc, char** argv);
 
     // 서버에서 playerid 받아서 저장
-    void SetPlayerID(int id) { playerID = id; }
+    void SetPlayerID(int id) { playerID = id; std::cout << id << std::endl; }
     int  GetPlayerID() const { return playerID; }
 
     // 서버에서 WorldSync를 받았을 때 호출될 함수

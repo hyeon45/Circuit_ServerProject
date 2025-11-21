@@ -24,10 +24,10 @@ void WorldState::AddPlayer(int playerID)
     Player p(playerID);
 
     // ID별 초기 좌표 설정
-    if (playerID == 1) {
+    if (playerID == 0) {
         p.x = 100.0f; p.y = 10.0f; p.z = 1700.0f;
     }
-    else if (playerID == 2) {
+    else if (playerID == 1) {
         p.x = 100.0f; p.y = 10.0f; p.z = 1780.0f;
     }
 

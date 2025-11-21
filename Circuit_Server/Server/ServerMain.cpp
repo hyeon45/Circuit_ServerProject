@@ -106,9 +106,6 @@ void ServerMain::AcceptClient() {
 			ci.playerID = static_cast<int>(world.players.size()); //일단 각 클라마다 ID 할당할 때 주는 방식으로 선정
 			
 			// world에 플레이어 생성
-			world.players.emplace_back(ci.playerID);
-
-			world.players.push_back(Player(ci.playerID));
 			world.AddPlayer(ci.playerID);	// 플레이어 위치 설정 
 
 		}
@@ -195,7 +192,7 @@ DWORD WINAPI ServerMain::NetThread(LPVOID arg) {
 			err_display("recv()");
 			break;
 		}
-
+		
 		PKT_HEADER hdr;
 		memcpy(&hdr, headerBuf, sizeof(PKT_HEADER));
 

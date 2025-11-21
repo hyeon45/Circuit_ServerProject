@@ -106,12 +106,25 @@ bool NetworkManager::SendPacket(const void* pkt, int size)
 //---------------------------------
 bool NetworkManager::SendCarMove(int playerID, uint8_t button)
 {
-    PKT_CarMove pkt{};
+   /* PKT_CarMove pkt{};
     pkt.type = PKT_CAR_MOVE;
     pkt.playerID = playerID;
     pkt.button = button;
+    return SendPacket(&pkt, sizeof(pkt));*/
 
-    return SendPacket(&pkt, sizeof(pkt));
+    PKT_HEADER hdr{};
+    hdr.type = PKT_CAR_MOVE;
+    hdr.size = sizeof(PKT_HEADER) + sizeof(PKT_CarMove); // ★ 1 아니고 struct 전체
+
+    PKT_CarMove body{};
+    body.playerID = playerID;   // 서버에서 안 쓰더라도 struct 맞춰서 채워주기
+    body.button = button;
+
+    char buf[sizeof(PKT_HEADER) + sizeof(PKT_CarMove)];
+    memcpy(buf, &hdr, sizeof(hdr));
+    memcpy(buf + sizeof(hdr), &body, sizeof(body));
+
+    return SendPacket(buf, sizeof(buf));
 }
 
 //---------------------------------
@@ -122,8 +135,9 @@ DWORD WINAPI NetworkManager::RecvThread(LPVOID arg)
     NetworkManager* self = static_cast<NetworkManager*>(arg);
 
     while (self->running) {
-        PKT_WorldSync pkt{};
-        int retval = recv(self->sock, reinterpret_cast<char*>(&pkt), sizeof(pkt), 0);
+        uint16_t header;
+        //PKT_WorldSync pkt{};
+        int retval = recv(self->sock, (char*)&header, sizeof(header), MSG_WAITALL);
 
         if (retval == 0) {
             self->running = false;
@@ -139,16 +153,40 @@ DWORD WINAPI NetworkManager::RecvThread(LPVOID arg)
             break;
         }
 
-        if (retval != sizeof(pkt)) { // 나중에 추가
-            continue;
-        }
+        //if (retval != sizeof(pkt)) { // 나중에 추가
+        //    continue;
+        //}
 
-        if (pkt.type != PKT_WORLD_SYNC) { // 얘도 나중에 늘어나면 swtich로 추가
-            continue;
+        //if (pkt.type != PKT_WORLD_SYNC) { // 얘도 나중에 늘어나면 swtich로 추가
+        //    continue;
+        //}
+        switch (header) {
+        case PKT_GAME_START: {
+            PKT_GameStart pkt;
+            pkt.type = header;
+            recv(self->sock,
+                ((char*)&pkt) + sizeof(header),
+                sizeof(pkt) - sizeof(header),
+                MSG_WAITALL);
+            if (Game::GetInstance()) {
+                Game::GetInstance()->SetPlayerID(pkt.playerID);
+            }
+            break;
         }
+        case PKT_WORLD_SYNC: {
+            PKT_WorldSync pkt;
+            pkt.type = header;
 
-        if(Game::GetInstance()){
-            Game::GetInstance()->OnWorldSync(pkt);
+            recv(self->sock,
+                ((char*)&pkt) + sizeof(header),
+                sizeof(pkt) - sizeof(header),
+                MSG_WAITALL);
+            //std::cout << "recv!!!!" << std::endl;
+            if (Game::GetInstance()) {
+                Game::GetInstance()->OnWorldSync(pkt);
+            }
+            break;
+        }
         }
     }
 
