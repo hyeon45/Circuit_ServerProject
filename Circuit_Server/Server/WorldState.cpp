@@ -185,8 +185,8 @@ void WorldState::StepPhysics(float deltaTime)
     for (auto& p : players)
     {
         // 단순 위치 적분
-        p.x += std::cos(p.yaw) * p.speed * deltaTime;
-        p.z += std::sin(p.yaw) * p.speed * deltaTime;
+        p.x += std::sin(p.yaw) * p.speed * deltaTime;
+        p.z += -std::cos(p.yaw)* p.speed* deltaTime;
         p.speed *= 0.98f;
     }
 }
