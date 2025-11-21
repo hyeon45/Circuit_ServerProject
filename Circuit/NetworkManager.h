@@ -2,6 +2,7 @@
 #include "Common.h"  
 #include "CarPacketClient.h"
 
+class ItemManager;
 
 class NetworkManager {
 public:
@@ -17,6 +18,9 @@ public:
 
     SOCKET GetSocket() const { return sock; }   // 소켓 호출
 
+    void SetItemManager(ItemManager* im) { itemManager = im; }
+    void ProcessItemDelete(const PKT_ItemDelete& pkt);
+
 private:
     SOCKET sock; // 클라 소켓 저장 
 
@@ -26,4 +30,5 @@ private:
 
     static DWORD WINAPI RecvThread(LPVOID arg);  // 스레드 함수
 
+    ItemManager* itemManager = nullptr;
 };

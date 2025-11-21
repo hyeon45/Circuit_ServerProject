@@ -1,5 +1,6 @@
 #include "NetworkManager.h"
 #include "Game.h"
+#include "Item.h"
 
 // 테스팅용
 // char* SERVERIP = (char*)"192.168.65.41";
@@ -187,8 +188,27 @@ DWORD WINAPI NetworkManager::RecvThread(LPVOID arg)
             }
             break;
         }
+        case PKT_ITEM_DELETE: {
+            PKT_ItemDelete pkt;
+            pkt.type = header;
+            recv(self->sock,
+                ((char*)&pkt) + sizeof(header),
+                sizeof(pkt) - sizeof(header),
+                MSG_WAITALL);
+            self->ProcessItemDelete(pkt);
+            break;
+        }
         }
     }
 
     return 0;
+}
+
+//---------------------------------
+// 아이템 패킷 받아서 ApplyItemDelete 로 보내주기
+//---------------------------------
+void NetworkManager::ProcessItemDelete(const PKT_ItemDelete& pkt) 
+{
+    if (!itemManager) return;
+    itemManager->ApplyItemDelete(pkt.itemID);
 }

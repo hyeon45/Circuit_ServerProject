@@ -51,6 +51,7 @@ void Game::Initialize() {
     car.Init();
     obstacles.Init();
     items.Init();
+    networkManager.SetItemManager(&items);
 
     glEnable(GL_DEPTH_TEST);
     lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
@@ -132,8 +133,8 @@ void Game::OnWorldSync(const PKT_WorldSync& pkt)
 {
     // 일단 내 플레이어만 반영
     if (pkt.playerID != playerID) return;
-    if (pkt.playerID == playerID)
-        std::cout << "x: " << pkt.posx << "," << "y: " << pkt.posy << "," << "z: " << pkt.posz << std::endl;
+    //if (pkt.playerID == playerID)
+        //std::cout << "x: " << pkt.posx << "," << "y: " << pkt.posy << "," << "z: " << pkt.posz << std::endl;
     
     car.SetPosition(pkt.posx, pkt.posy, pkt.posz);
     car.SetYaw(pkt.yaw);
