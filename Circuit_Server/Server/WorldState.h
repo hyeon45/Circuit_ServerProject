@@ -3,6 +3,7 @@
 #include "Player.h"
 #include "Item.h"
 #include "Obstacle.h"
+#include "FinishLineTrigger.h"
 
 // 충돌 체크 할때 사용할 구조체
 struct CollisionInfo {
@@ -25,6 +26,8 @@ public:
     std::vector<Item> items; // 맵 내 존재하는 아이템들
     std::vector<Obstacle> obstacles;    // 맵에 존재하는 장애물들과 충돌판정 수치값
     std::vector<RoadBound> roadBounds;  // 도로 밖으로 나가지 못하도록 충돌 판정
+
+    FinishLineTrigger finishTrigger;    // 플레이어가 결승선을 지나쳤는지 확인하기 위함.
 
     // 읽기용 참조 반환
     const std::vector<Player>& GetPlayers() const { return players; } 
