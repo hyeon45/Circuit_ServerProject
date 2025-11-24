@@ -21,6 +21,9 @@ public:
     void SetItemManager(ItemManager* im) { itemManager = im; }
     void ProcessItemDelete(const PKT_ItemDelete& pkt);
 
+    // Recv 스레드 시작
+    bool StartRecvThread();
+
 private:
     SOCKET sock; // 클라 소켓 저장 
 

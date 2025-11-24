@@ -48,13 +48,17 @@ void Game::Run(int argc, char** argv) {
 // -------------------------
 void Game::Initialize() {
     renderer.Initialize();
-    car.Init();
+    cars.resize(2);   // 두 명 플레이어용
+    for (auto& c : cars) c.Init();
     obstacles.Init();
     items.Init();
     networkManager.SetItemManager(&items);
 
     glEnable(GL_DEPTH_TEST);
     lastTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+
+    // RecvThread 시작
+    networkManager.StartRecvThread();
 }
 
 // -------------------------
@@ -63,13 +67,11 @@ void Game::Initialize() {
 void Game::Update(float dt) {
 
     // 1) 서버 목표 위치 쪽으로 렌더 위치를 한 번 당겨주기
-    car.Update(dt);
-
-    if (playerID < 0) {
-        return;
+    if (playerID >= 0 && playerID < cars.size()) {
+        cars[playerID].Update(dt);
     }
 
-    uint8_t button = car.GetInputMask();
+    uint8_t button = cars[playerID].GetInputMask();
 
     //if (playerID >= 0) { // 서버에서 start와 id 받으면 시작
     //    
@@ -85,7 +87,8 @@ void Game::Update(float dt) {
 // 그리기
 // -------------------------
 void Game::Draw() {
-    renderer.DrawScene(car, obstacles, items);
+    if (playerID >= 0 && playerID < cars.size())
+        renderer.DrawScene(cars, playerID, obstacles, items);
 }
 
 // -------------------------
@@ -119,11 +122,15 @@ void Game::KeyboardCallback(unsigned char key, int x, int y) {
 
 
 void Game::SpecialKeyCallback(int key, int x, int y) {
-    instance->car.HandleSpecialKey(key, true);
+    if (instance->playerID >= 0 && instance->playerID < instance->cars.size()) {
+        instance->cars[instance->playerID].HandleSpecialKey(key, true);
+    }
 }
 
 void Game::SpecialKeyUpCallback(int key, int x, int y) {
-    instance->car.HandleSpecialKey(key, false);
+    if (instance->playerID >= 0 && instance->playerID < instance->cars.size()) {
+        instance->cars[instance->playerID].HandleSpecialKey(key, false);
+    }
 }
 
 // -------------------------
@@ -131,13 +138,27 @@ void Game::SpecialKeyUpCallback(int key, int x, int y) {
 // -------------------------
 void Game::OnWorldSync(const PKT_WorldSync& pkt) 
 {
-    // 일단 내 플레이어만 반영
-    if (pkt.playerID != playerID) return;
-    //if (pkt.playerID == playerID)
-        //std::cout << "x: " << pkt.posx << "," << "y: " << pkt.posy << "," << "z: " << pkt.posz << std::endl;
-    
-    car.SetPosition(pkt.posx, pkt.posy, pkt.posz);
-    car.SetYaw(pkt.yaw);
-    car.SetScale(pkt.scale);
-    car.SetShield(pkt.shield != 0);
+    //// 일단 내 플레이어만 반영
+    //if (pkt.playerID != playerID) return;
+    ////if (pkt.playerID == playerID)
+    //    //std::cout << "x: " << pkt.posx << "," << "y: " << pkt.posy << "," << "z: " << pkt.posz << std::endl;
+    //
+    //car.SetPosition(pkt.posx, pkt.posy, pkt.posz);
+    //car.SetYaw(pkt.yaw);
+    //car.SetScale(pkt.scale);
+    //car.SetShield(pkt.shield != 0);
+
+    int id = pkt.playerID;
+
+    // 혹시 서버가 먼저 보내는 상황을 대비
+    std::cout << "playerID = " << playerID << std::endl;
+    // std::cout << cars.size() << std::endl;
+    if (id >= cars.size()) {
+        cars.resize(id);
+    }
+
+    cars[id].SetPosition(pkt.posx, pkt.posy, pkt.posz);
+    cars[id].SetYaw(pkt.yaw);
+    cars[id].SetScale(pkt.scale);
+    cars[id].SetShield(pkt.shield != 0);
 }

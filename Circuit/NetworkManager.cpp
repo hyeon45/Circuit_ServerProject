@@ -44,15 +44,6 @@ bool NetworkManager::Connect() {
     if (retval == SOCKET_ERROR)
         return false;
 
-    // Recv 스레드 생성
-    running = true;
-    hRecvThread = CreateThread(nullptr, 0, &NetworkManager::RecvThread, this, 0, nullptr);
-    if (hRecvThread == nullptr) {
-        running = false;
-        err_display("CreateThread(RecvThread)");
-        return false;
-    }
-
     return true;
 }
 
@@ -127,6 +118,23 @@ bool NetworkManager::SendCarMove(int playerID, uint8_t button)
 
     return SendPacket(buf, sizeof(buf));
 }
+
+//---------------------------------
+// RecvThread 생성함수
+//---------------------------------
+bool NetworkManager::StartRecvThread() {
+    if (running) return true;
+
+    running = true;
+
+    hRecvThread = CreateThread(nullptr, 0, RecvThread, this, 0, nullptr);
+    if (!hRecvThread) {
+        running = false;
+        return false;
+    }
+    return true;
+}
+
 
 //---------------------------------
 // RecvThread 함수
