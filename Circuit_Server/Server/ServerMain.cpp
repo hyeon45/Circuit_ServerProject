@@ -280,6 +280,9 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg)
 			continue;
 		}
 
+		// 경기 시간 계산하기
+		self->raceStateManager.UpdateRaceTime(deltaTime);
+
 		// 2) 입력 수집 (mutex 보호)
 		std::vector<InputSnapshot> inputs;
 		{

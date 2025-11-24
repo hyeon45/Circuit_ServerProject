@@ -16,6 +16,7 @@ public:
     float speedBoostTimer;  // 속도 아이템 지속시간
     float shrinkTimer;      // 축소 아이템 지속시간
     bool hasFinished = false;       // 통과 여부
+    float finishTime;
 
     // 생성자
     Player(int pid = 0);
