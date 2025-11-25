@@ -3,7 +3,7 @@
     #include "Item.h"
 
     // 테스팅용
-    char* SERVERIP = (char*)"192.168.79.254";
+    char* SERVERIP = (char*)"10.59.44.2";
     //char* SERVERIP = (char*)"127.0.0.1";
     int SERVERPORT = 9000;
 

@@ -44,6 +44,24 @@ void Game::Run(int argc, char** argv) {
 }
 
 // -------------------------
+// 차량 추가 및 초기화
+// -------------------------
+void Game::EnsureCarSlot(int id) {
+    if (id < 0) return;
+
+    if (id >= cars.size()) {
+        size_t old = cars.size();
+        cars.resize(id + 1);
+
+        // 새로 생긴 Car는 Init() 필요
+        for (size_t i = old; i < cars.size(); ++i) {
+            cars[i].Init();
+        }
+    }
+}
+
+
+// -------------------------
 // 초기화
 // -------------------------
 void Game::Initialize() {
