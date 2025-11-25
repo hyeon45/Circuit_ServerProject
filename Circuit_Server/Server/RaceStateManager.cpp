@@ -7,6 +7,7 @@ RaceStateManager::RaceStateManager(PacketHandler* handler)
     state(RaceState::WAITING),
     countdownStarted(false),
     countdownTime(0.0f),
+    totalRaceTime(0.0f),
     winnerID(-1),
     raceEnded(false)
 {
@@ -46,33 +47,28 @@ int RaceStateManager::CheckFinishLine(WorldState& world) {
     if (state != RaceState::PLAYING || raceEnded)
         return -1;
 
-    // 결승선 범위 (맵 구조 기준)
-    const float finishZMin = 1440.0f;
-    const float finishZMax = 1540.0f;
-    const float finishXMin = 1000.0f;
-    const float finishXMax = 1140.0f;
-
     for (auto& player : world.players)
     {
         float x = player.x;
         float z = player.z;
+        
+        // std::cout << world.finishTrigger.IsInside(x, z) << std::endl;
 
-        // 결승선 통과 검사
-        if (x >= finishXMin && x <= finishXMax &&
-            z >= finishZMin && z <= finishZMax &&
-            !player.hasFinished)
+        // FinishLineTrigger 사용하여 플레이어가 결승선을 통과헀는지에 대한 여부 판단.
+        if (world.finishTrigger.IsInside(x, z))
         {
             player.hasFinished = true;
+            player.finishTime = totalRaceTime;
             winnerID = player.id;
-            state = RaceState::FINISH;
             raceEnded = true;
+            state = RaceState::FINISH;
 
-            std::cout << "[Race] Player " << winnerID << " reached the finish line!\n";
+            printf("[Race] Player %d reached the finish!\n", winnerID);
             return winnerID;
         }
     }
 
-    return -1; // 아직 통과 없음
+    return -1;
 }
 
 // ---------------------------------------------
@@ -89,3 +85,15 @@ void RaceStateManager::EndRace(int winnerID) {
 
 
 }
+
+// ---------------------------------------------
+// 경기 시간 업데이트
+// ---------------------------------------------
+void RaceStateManager::UpdateRaceTime(float deltaTime)
+{
+    if (state == RaceState::PLAYING && !raceEnded)
+    {
+        totalRaceTime += deltaTime;
+    }
+}
+

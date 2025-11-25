@@ -27,7 +27,7 @@ private:
 
     // --- °´Ã¼ ---
     Renderer renderer;
-    Car car;
+    std::vector<Car> cars;
     ObstacleManager obstacles;
     ItemManager items;
     NetworkManager networkManager;

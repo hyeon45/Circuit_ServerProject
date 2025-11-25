@@ -25,10 +25,12 @@ void WorldState::AddPlayer(int playerID)
 
     // ID별 초기 좌표 설정
     if (playerID == 0) {
-        p.x = 100.0f; p.y = 10.0f; p.z = 1700.0f;
+        // 디버그용
+        // p.x = 1000.0f; p.y = 10.0f; p.z = 1500.0f;
+        p.x = 80.0f; p.y = 10.0f; p.z = 1780.0f;
     }
     else if (playerID == 1) {
-        p.x = 100.0f; p.y = 10.0f; p.z = 1780.0f;
+        p.x = 150.0f; p.y = 10.0f; p.z = 1780.0f;
     }
 
     players.push_back(p);
@@ -115,6 +117,12 @@ void WorldState::Initialize()
     for (auto& item : items) {
         item.type = static_cast<ItemType>(dist(rd));
     }
+
+    // 결승선 범위 지정
+    finishTrigger = FinishLineTrigger(
+        1093.f, 1140.f,   // X 범위
+        1440.f, 1540.f    // Z 범위
+    );
 }
 
 // ----------------------------------------

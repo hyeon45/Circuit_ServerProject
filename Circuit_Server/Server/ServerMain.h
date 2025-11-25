@@ -60,7 +60,7 @@ private:
 	RaceStateManager raceStateManager;
 	std::atomic<bool> gameStarted{ false };
 
-	// 테스팅용 / 실제 용도
+	// 테스팅용 / 디버그용 / 실제 용도
 	// int requiredPlayers = 2;
-	int requiredPlayers = 1;
+	int requiredPlayers = 2;
 };

@@ -15,7 +15,8 @@ public:
     bool shield;            // 보호막 (커지는 아이템 1회 충돌 무시용)
     float speedBoostTimer;  // 속도 아이템 지속시간
     float shrinkTimer;      // 축소 아이템 지속시간
-    bool hasFinished;       // 통과 여부
+    bool hasFinished = false;       // 통과 여부
+    float finishTime;
 
     // 생성자
     Player(int pid = 0);

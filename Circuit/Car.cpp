@@ -110,7 +110,7 @@ void Car::SetPosition(float x, float y, float z)
     serverPosition.x = x;
     serverPosition.y = y;
     serverPosition.z = z;
-    //std::cout << "x: " << x << "," << "y: " << y << "," << "z: " << z << std::endl;
+    // std::cout << "x: " << x << "," << "y: " << y << "," << "z: " << z << std::endl;
 }
 
 void Car::SetYaw(float newYaw) 
