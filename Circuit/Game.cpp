@@ -70,6 +70,9 @@ void Game::Update(float dt) {
     if (playerID >= 0 && playerID < cars.size()) {
         cars[playerID].Update(dt);
     }
+    else {
+        return;
+    }
 
     uint8_t button = cars[playerID].GetInputMask();
 
@@ -151,7 +154,7 @@ void Game::OnWorldSync(const PKT_WorldSync& pkt)
     int id = pkt.playerID;
 
     // 혹시 서버가 먼저 보내는 상황을 대비
-    std::cout << "playerID = " << playerID << std::endl;
+    /*std::cout << "playerID = " << playerID << std::endl;*/
     // std::cout << cars.size() << std::endl;
     if (id >= cars.size()) {
         cars.resize(id);
