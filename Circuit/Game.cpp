@@ -86,7 +86,10 @@ void Game::Update(float dt) {
 
     // 1) 서버 목표 위치 쪽으로 렌더 위치를 한 번 당겨주기
     if (playerID >= 0 && playerID < cars.size()) {
-        cars[playerID].Update(dt);
+       // cars[playerID].Update(dt);
+        for (auto& c : cars) {
+            c.Update(dt);
+        }
     }
     else {
         return;
