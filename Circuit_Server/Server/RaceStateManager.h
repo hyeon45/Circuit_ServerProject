@@ -8,7 +8,8 @@ enum class RaceState {
     WAITING,
     COUNTDOWN,
     PLAYING,
-    FINISH
+    FINISH, 
+    END
 };
 
 class RaceStateManager {
