@@ -22,6 +22,9 @@ public:
     // 서버에서 WorldSync를 받았을 때 호출될 함수
     void OnWorldSync(const PKT_WorldSync& pkt);
 
+    // 서버에서 받은 GameResult 처리
+    void ShowResult(int winnerID);
+
 private:
     int playerID;
 

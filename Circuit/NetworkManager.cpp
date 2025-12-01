@@ -208,6 +208,19 @@
                 self->ProcessItemDelete(pkt);
                 break;
             }
+            case PKT_GAME_RESULT: {
+                PKT_GameResult pkt;
+                pkt.type = header;
+
+                recv(self->sock,
+                    ((char*)&pkt) + sizeof(header),
+                    sizeof(pkt) - sizeof(header),
+                    MSG_WAITALL);
+                if (Game::GetInstance()) {
+                    Game::GetInstance()->ShowResult(pkt.winnerID);
+                }
+                break;
+            }
             }
         }
 

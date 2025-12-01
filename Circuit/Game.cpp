@@ -186,3 +186,20 @@ void Game::OnWorldSync(const PKT_WorldSync& pkt)
     cars[id].SetScale(pkt.scale);
     cars[id].SetShield(pkt.shield != 0);
 }
+
+// Game Result 처리
+void Game::ShowResult(int winnerID)
+{
+    // 일단은 승자 ID 출력만
+    printf("[RESULT] Winner ID = %d\n", winnerID);
+
+    if (winnerID == playerID) {
+        printf("You Win!\n");
+    }
+    else {
+        printf("You Lose... :(\n");
+    }
+
+    //ameRunning = false;  // 필요시? 추가
+    // 그와에 UI나 결과 화면 추가할지 정하기
+}
