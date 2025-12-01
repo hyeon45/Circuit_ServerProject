@@ -86,7 +86,10 @@ void Game::Update(float dt) {
 
     // 1) 서버 목표 위치 쪽으로 렌더 위치를 한 번 당겨주기
     if (playerID >= 0 && playerID < cars.size()) {
-        cars[playerID].Update(dt);
+        for (auto& c : cars) {
+            /*std::cout << "playerID = " << playerID << std::endl;*/
+            c.Update(dt);
+        }
     }
     else {
         return;
@@ -174,9 +177,6 @@ void Game::OnWorldSync(const PKT_WorldSync& pkt)
     // 혹시 서버가 먼저 보내는 상황을 대비
     /*std::cout << "playerID = " << playerID << std::endl;*/
     // std::cout << cars.size() << std::endl;
-    if (id >= cars.size()) {
-        cars.resize(id);
-    }
 
     cars[id].SetPosition(pkt.posx, pkt.posy, pkt.posz);
     cars[id].SetYaw(pkt.yaw);
