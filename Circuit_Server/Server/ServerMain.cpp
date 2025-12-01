@@ -328,6 +328,10 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg)
 
 			// 9) 결승선 판정
 			winner = self->raceStateManager.CheckFinishLine(self->world);
+			if (winner != -1)
+			{
+				self->raceStateManager.EndRace(winner);
+			}
 
 			// 10) 월드 상태 최종 동기화 (현재 값 없음. -> 이미 최신 상태로 다 갱신하고 있기 때문)
 			self->world.SyncPlayers();

@@ -16,11 +16,14 @@ public:
     void Run(int argc, char** argv);
 
     // 서버에서 playerid 받아서 저장
-    void SetPlayerID(int id) { playerID = id; std::cout << id << std::endl; }
+    void SetPlayerID(int id) { playerID = id; EnsureCarSlot(id);  std::cout << id << std::endl; }
     int  GetPlayerID() const { return playerID; }
 
     // 서버에서 WorldSync를 받았을 때 호출될 함수
     void OnWorldSync(const PKT_WorldSync& pkt);
+
+    // 서버에서 받은 GameResult 처리
+    void ShowResult(int winnerID);
 
 private:
     int playerID;
@@ -41,6 +44,7 @@ private:
     float gameTime = 0.0f;
 
     // --- 내부 로직 ---
+    void EnsureCarSlot(int id);
     void Initialize();
     void Update(float dt);
     void Draw();

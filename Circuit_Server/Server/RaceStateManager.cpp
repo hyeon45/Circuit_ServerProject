@@ -60,7 +60,7 @@ int RaceStateManager::CheckFinishLine(WorldState& world) {
             player.hasFinished = true;
             player.finishTime = totalRaceTime;
             winnerID = player.id;
-            raceEnded = true;
+            // raceEnded = true;
             state = RaceState::FINISH;
 
             printf("[Race] Player %d reached the finish!\n", winnerID);
@@ -72,18 +72,16 @@ int RaceStateManager::CheckFinishLine(WorldState& world) {
 }
 
 // ---------------------------------------------
-// 3. 경기 종료 처리 (임시)
+// 3. 경기 종료 처리
 // ---------------------------------------------
 void RaceStateManager::EndRace(int winnerID) {
+    if (raceEnded) return;
     raceEnded = true;
-    state = RaceState::FINISH;
 
-    // 다음 경기 준비
-    countdownStarted = false;
-    countdownTime = 0.0f;
-    this->winnerID = winnerID;
+    state = RaceState::END;
+    printf("[Race] RACE END! Winner = %d\n", winnerID);
 
-
+    pkt_handler->SendGameResult(winnerID);
 }
 
 // ---------------------------------------------

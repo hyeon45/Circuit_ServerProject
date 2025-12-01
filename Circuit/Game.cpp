@@ -44,6 +44,24 @@ void Game::Run(int argc, char** argv) {
 }
 
 // -------------------------
+// 차량 추가 및 초기화
+// -------------------------
+void Game::EnsureCarSlot(int id) {
+    if (id < 0) return;
+
+    if (id >= cars.size()) {
+        size_t old = cars.size();
+        cars.resize(id + 1);
+
+        // 새로 생긴 Car는 Init() 필요
+        for (size_t i = old; i < cars.size(); ++i) {
+            cars[i].Init();
+        }
+    }
+}
+
+
+// -------------------------
 // 초기화
 // -------------------------
 void Game::Initialize() {
@@ -68,7 +86,13 @@ void Game::Update(float dt) {
 
     // 1) 서버 목표 위치 쪽으로 렌더 위치를 한 번 당겨주기
     if (playerID >= 0 && playerID < cars.size()) {
-        cars[playerID].Update(dt);
+       // cars[playerID].Update(dt);
+        for (auto& c : cars) {
+            c.Update(dt);
+        }
+    }
+    else {
+        return;
     }
 
     uint8_t button = cars[playerID].GetInputMask();
@@ -151,7 +175,7 @@ void Game::OnWorldSync(const PKT_WorldSync& pkt)
     int id = pkt.playerID;
 
     // 혹시 서버가 먼저 보내는 상황을 대비
-    std::cout << "playerID = " << playerID << std::endl;
+    /*std::cout << "playerID = " << playerID << std::endl;*/
     // std::cout << cars.size() << std::endl;
     if (id >= cars.size()) {
         cars.resize(id);
@@ -161,4 +185,21 @@ void Game::OnWorldSync(const PKT_WorldSync& pkt)
     cars[id].SetYaw(pkt.yaw);
     cars[id].SetScale(pkt.scale);
     cars[id].SetShield(pkt.shield != 0);
+}
+
+// Game Result 처리
+void Game::ShowResult(int winnerID)
+{
+    // 일단은 승자 ID 출력만
+    printf("[RESULT] Winner ID = %d\n", winnerID);
+
+    if (winnerID == playerID) {
+        printf("You Win!\n");
+    }
+    else {
+        printf("You Lose... :(\n");
+    }
+
+    //ameRunning = false;  // 필요시? 추가
+    // 그와에 UI나 결과 화면 추가할지 정하기
 }
