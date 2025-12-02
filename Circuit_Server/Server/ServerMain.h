@@ -10,6 +10,9 @@
 #include <optional>
 #include "RaceStateManager.h"
 
+// 테스팅용 / 디버그용 / 실제 용도
+#define MAX_PLAYER 2
+
 struct ClientInfo {
 	SOCKET sock;
 	sockaddr_in addr;
@@ -50,6 +53,10 @@ public:
 	// 플레이어들 현재 상태 패킷정보 가져오기
 	std::vector<PKT_WorldSync> WorldSyncPackets() const;
 
+	int FindAvailablePlayerID();	// 플레이어 아이디를 가장 낮은 곳에서 찾음.
+	int GetConnectedPlayerCount();	// 플레이어 접속 수를 확인
+	void ResetMatch();	// 경기 재시작.
+
 private:
 	SOCKET listen_sock;
 	std::vector<ClientInfo> clients;
@@ -59,8 +66,4 @@ private:
 	PacketHandler* pkt_handler;
 	RaceStateManager raceStateManager;
 	std::atomic<bool> gameStarted{ false };
-
-	// 테스팅용 / 디버그용 / 실제 용도
-	// int requiredPlayers = 2;
-	int requiredPlayers = 2;
 };

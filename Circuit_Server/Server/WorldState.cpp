@@ -30,12 +30,22 @@ void WorldState::AddPlayer(int playerID)
         p.x = 80.0f; p.y = 10.0f; p.z = 1780.0f;
     }
     else if (playerID == 1) {
-        p.x = 150.0f; p.y = 10.0f; p.z = 1780.0f;
+        p.x = 130.0f; p.y = 10.0f; p.z = 1780.0f;
     }
 
     players.push_back(p);
 }
 
+// ----------------------------------------
+// 플레이어 Disconneted 가 되었을 때, 플레이어값 지우기.
+// ----------------------------------------
+void WorldState::DeletePlayer(int playerID) {
+    players.erase(
+        std::remove_if(players.begin(), players.end(),
+            [&](const Player& p) { return p.id == playerID; }),
+        players.end()
+    );
+}
 
 // ----------------------------------------
 // 게임 시작 시 초기화
@@ -336,4 +346,15 @@ void WorldState::RoadBoundaryCollision(int playerID)
 
     // 속도 0으로 멈춤
     p.speed = 0.0f;
+}
+
+// ----------------------------------------
+// 월드 리셋
+// ---------------------------------------- 
+void WorldState::Reset()
+{
+    players.clear();
+    items.clear();
+
+    Initialize();
 }

@@ -7,7 +7,6 @@ RaceStateManager::RaceStateManager(PacketHandler* handler)
     state(RaceState::WAITING),
     countdownStarted(false),
     countdownTime(0.0f),
-    totalRaceTime(0.0f),
     winnerID(-1),
     raceEnded(false)
 {
@@ -58,7 +57,6 @@ int RaceStateManager::CheckFinishLine(WorldState& world) {
         if (world.finishTrigger.IsInside(x, z))
         {
             player.hasFinished = true;
-            player.finishTime = totalRaceTime;
             winnerID = player.id;
             // raceEnded = true;
             state = RaceState::FINISH;
@@ -85,13 +83,13 @@ void RaceStateManager::EndRace(int winnerID) {
 }
 
 // ---------------------------------------------
-// 경기 시간 업데이트
+// 경기 리셋
 // ---------------------------------------------
-void RaceStateManager::UpdateRaceTime(float deltaTime)
+void RaceStateManager::ResetState()
 {
-    if (state == RaceState::PLAYING && !raceEnded)
-    {
-        totalRaceTime += deltaTime;
-    }
+    state = RaceState::WAITING;
+    countdownStarted = false;
+    countdownTime = 0.0f;
+    winnerID = -1;
+    raceEnded = false;
 }
-

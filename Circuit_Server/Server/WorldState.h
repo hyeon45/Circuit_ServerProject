@@ -45,4 +45,6 @@ public:
     void AddPlayer(int playerID);   // 플레이어 초기 위치값 저장
     bool IsInsideRoad(float x, float z);    // 도로와 충돌하고 있는지에 대한 여부 저장
     void RoadBoundaryCollision(int playerID);   // 도로 주행 충돌 계산하는 함수
+    void DeletePlayer(int playerID); // 플레이어 삭제 함수
+    void Reset();   // 월드 리셋
 };

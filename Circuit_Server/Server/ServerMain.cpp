@@ -103,11 +103,17 @@ void ServerMain::AcceptClient() {
 
 		{
 			std::lock_guard<std::mutex> wg(worldMutex);
-			ci.playerID = static_cast<int>(world.players.size()); //일단 각 클라마다 ID 할당할 때 주는 방식으로 선정
-			
-			// world에 플레이어 생성
-			world.AddPlayer(ci.playerID);	// 플레이어 위치 설정 
+			int newID = FindAvailablePlayerID();
+			if (newID < 0) {
+				err_display("FindAvailablePlayerID()");
+				return;
+			}
 
+			// 2. 클라이언트 정보에 ID 저장
+			ci.playerID = newID;
+
+			// 3. world에 플레이어 생성
+			world.AddPlayer(newID);
 		}
 
 		int idx = -1;
@@ -123,7 +129,7 @@ void ServerMain::AcceptClient() {
 				int connected = 0;
 				for (const auto& c : clients)
 					if (c.connected) ++connected;
-				if (connected >= requiredPlayers) {
+				if (connected >= MAX_PLAYER) {
 					gameStarted.store(true);
 					shouldSendStart = true;
 				}
@@ -240,13 +246,28 @@ DWORD WINAPI ServerMain::NetThread(LPVOID arg) {
 		std::lock_guard<std::mutex> lg(self->clientsMutex);
 		if (idx >= 0 && idx < static_cast<int>(self->clients.size())) {
 			self->clients[idx].connected = false;
+			
 			if (self->clients[idx].sock != INVALID_SOCKET) {
 				closesocket(self->clients[idx].sock);
 				self->clients[idx].sock = INVALID_SOCKET;
 			}
 		}
 	}
+
+	// 플레이어 정보 삭제
+	{
+		std::lock_guard<std::mutex> wlg(self->worldMutex);   // 월드 접근 mutex 있으면
+		self->world.DeletePlayer(playerID);
+	}
+
 	printf("[NetThread] player %d disconnected\n", playerID);
+
+	int remain = self->GetConnectedPlayerCount();
+	if (remain == 0)
+	{
+		printf("[Server] All players disconnected. Resetting match...\n");
+		self->ResetMatch();
+	}
 	return 0;
 }
 
@@ -279,9 +300,6 @@ DWORD WINAPI ServerMain::PhysicsThread(LPVOID arg)
 			std::this_thread::sleep_until(next);
 			continue;
 		}
-
-		// 경기 시간 계산하기
-		self->raceStateManager.UpdateRaceTime(deltaTime);
 
 		// 2) 입력 수집 (mutex 보호)
 		std::vector<InputSnapshot> inputs;
@@ -464,4 +482,53 @@ std::vector<PKT_WorldSync> ServerMain::WorldSyncPackets() const {
 		pkts.push_back(pkt);
 	}
 	return pkts;
+}
+
+// -------------------------------
+// 플레이어들 현재 상태 패킷정보 가져오기
+// -------------------------------
+int ServerMain::FindAvailablePlayerID()
+{
+	std::vector<bool> used(MAX_PLAYER, false);
+
+	for (auto& p : world.players)
+		used[p.id] = true;
+
+	// 가장 작은 빈 ID 반환
+	for (int i = 0; i < MAX_PLAYER; i++) {
+		if (!used[i])
+			return i;
+	}
+
+	return -1; // 전부 찼을 경우
+}
+
+// -------------------------------
+// 플레이어가 몇명이 들어와있는지 확인
+// -------------------------------
+int ServerMain::GetConnectedPlayerCount()
+{
+	std::lock_guard<std::mutex> lg(clientsMutex);
+	int count = 0;
+	for (auto& c : clients)
+		if (c.connected)
+			count++;
+	return count;
+}
+
+// -------------------------------
+// 경기 재시작
+// -------------------------------
+void ServerMain::ResetMatch()
+{
+	printf("[Server] ResetMatch() called. Resetting world...\n");
+
+	{
+		std::lock_guard<std::mutex> wlg(worldMutex);
+		world.Reset();
+	}
+
+	raceStateManager.ResetState();
+
+	gameStarted.store(false);
 }
