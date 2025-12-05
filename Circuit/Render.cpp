@@ -210,7 +210,7 @@ void Renderer::DrawScene(const std::vector<Car>& cars, int playerID, const Obsta
         if (i == playerID)
             glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f);
         else
-            glUniform3f(colorLoc, 1.0f, 0.0f, 1.0f);
+            glUniform3f(colorLoc, 0.0f, 0.0f, 1.0f);
 
         cars[i].Draw(shaderProgramID);
     }
