@@ -61,8 +61,8 @@ void Car::Init() {
 void Car::Draw(GLuint shaderProgram) const {
     glUseProgram(shaderProgram);
 
-    GLint objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
-    if (objectColorLoc != -1) glUniform3f(objectColorLoc, 1.0f, 0.0f, 0.0f);
+    //GLint objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
+    //if (objectColorLoc != -1) glUniform3f(objectColorLoc, 1.0f, 0.0f, 0.0f);
 
     glm::mat4 model = glm::mat4(1.0f);
     glm::vec3 pos = renderPosition;
