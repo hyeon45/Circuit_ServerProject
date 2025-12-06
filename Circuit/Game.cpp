@@ -1,4 +1,5 @@
 #include "Game.h"
+#include <GL/glu.h>
 
 // 정적 멤버 초기화
 Game* Game::instance = nullptr;
@@ -113,6 +114,19 @@ void Game::Update(float dt) {
 void Game::Draw() {
     if (playerID >= 0 && playerID < cars.size())
         renderer.DrawScene(cars, playerID, obstacles, items);
+
+    // 승자 결정시 결과 출력
+    if (showResult) {
+        int x = windowWidth / 2 - 60;   // 대충 가운데 쯤
+        int y = windowHeight / 2;
+        DrawText(resultText, x, y);
+
+        // WinnerID도 표시
+        char buf[64];
+        snprintf(buf, sizeof(buf), "Winner ID: %d", winnerID_);
+        DrawText(buf, x - 20, y - 40);
+    }
+    glutSwapBuffers();
 }
 
 // -------------------------
@@ -190,16 +204,60 @@ void Game::OnWorldSync(const PKT_WorldSync& pkt)
 // Game Result 처리
 void Game::ShowResult(int winnerID)
 {
+    winnerID_ = winnerID;
+    showResult = true;
+    //gameRunning = false;  // 필요시? 추가
+
     // 일단은 승자 ID 출력만
     printf("[RESULT] Winner ID = %d\n", winnerID);
 
     if (winnerID == playerID) {
+        resultText = "YOU WIN!";
         printf("You Win!\n");
     }
     else {
+        resultText = "YOU LOSE...";
         printf("You Lose... :(\n");
     }
-
-    //ameRunning = false;  // 필요시? 추가
     // 그와에 UI나 결과 화면 추가할지 정하기
+}
+
+// 2D 텍스트 그리기
+void Game::DrawText(const std::string& text, int x, int y)
+{
+    // 3D용 셰이더 끄기
+    glUseProgram(0);
+
+    // 깊이 테스트 끄기 (UI가 위에 보이도록)
+    glDisable(GL_DEPTH_TEST);
+
+    // 투영 행렬 저장 & 2D 직교 투영으로 변경
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, windowWidth, 0, windowHeight);
+
+    // 모델뷰 행렬 저장 & 단위 행렬
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // 텍스트 색 (흰색)
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    // 화면 좌표 (x, y) 에 텍스트 시작 위치 설정
+    glRasterPos2i(x, y);
+
+    for (char c : text) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
+
+    // 행렬 복구
+    glPopMatrix(); // MODELVIEW
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+
+    // 다시 깊이 테스트 켜기
+    glEnable(GL_DEPTH_TEST);
 }
