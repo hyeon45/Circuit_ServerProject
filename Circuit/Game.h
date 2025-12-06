@@ -8,6 +8,7 @@
 #include "Item.h"
 #include "Render.h"
 #include "NetworkManager.h"
+#include <string>
 
 class Game {
 public:
@@ -43,11 +44,17 @@ private:
     bool gameRunning = false;
     float gameTime = 0.0f;
 
+    // ==== 결과 UI용 ====
+    bool showResult = false;
+    int winnerID_ = -1;
+    std::string resultText;
+
     // --- 내부 로직 ---
     void EnsureCarSlot(int id);
     void Initialize();
     void Update(float dt);
     void Draw();
+    void DrawText(const std::string& text, int x, int y);  // UI 그리기 용
 
     // --- GLUT 콜백 (static wrapper) ---
     static void DisplayCallback();
