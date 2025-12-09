@@ -218,5 +218,5 @@ void Renderer::DrawScene(const std::vector<Car>& cars, int playerID, const Obsta
     obstacles.Draw(shaderProgramID);
     items.Draw(shaderProgramID);
 
-    glutSwapBuffers();
+    //glutSwapBuffers();
 }
