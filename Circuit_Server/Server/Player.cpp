@@ -22,7 +22,7 @@ Player::Player(int pid)
 void Player::ApplyItemEffect(ItemType type) {
     switch (type) {
     case ItemType::Grow:
-        scale *= 2.0f;
+        scale = 2.0f;
         shield = true;
         break;
     case ItemType::Shrink:
