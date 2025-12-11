@@ -167,6 +167,8 @@ void Renderer::Initialize() {
 // ------------------------
 void Renderer::DrawScene(const std::vector<Car>& cars, int playerID, const ObstacleManager& obstacles, const ItemManager& items)
 {
+    int window_width = 1000, window_height = 800;
+    glViewport(0, 0, window_width, window_height); 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaderProgramID);
 
@@ -181,7 +183,10 @@ void Renderer::DrawScene(const std::vector<Car>& cars, int playerID, const Obsta
     );
 
     glm::mat4 view = glm::lookAt(camPos, carPos, glm::vec3(0, 1, 0));
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), 1000.0f / 800.0f, 0.1f, 2000.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), 
+        static_cast<float>(window_width) / window_height,
+        0.1f,
+        2000.0f);
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "viewTransform"), 1, GL_FALSE, &view[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "projectionTransform"), 1, GL_FALSE, &proj[0][0]);
@@ -211,6 +216,46 @@ void Renderer::DrawScene(const std::vector<Car>& cars, int playerID, const Obsta
             glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f);
         else
             glUniform3f(colorLoc, 0.0f, 0.0f, 1.0f);
+
+        cars[i].Draw(shaderProgramID);
+    }
+
+    obstacles.Draw(shaderProgramID);
+    items.Draw(shaderProgramID);
+
+    // ===========================
+    // 2) 미니맵 뷰포트
+    // ===========================
+   
+    glViewport(500, 600, window_width / 2, window_height / 2);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    // ----- 미니맵 카메라 (위에서 내려다보기, 고정형) -----
+    glm::mat4 minview = glm::lookAt(glm::vec3(0.0f, 5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+    glm::mat4 projection = glm::ortho(-2000.0f, 2000.0f, -2000.0f, 2000.0f, -10.0f, 5000.0f);
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "viewTransform"), 1, GL_FALSE, &minview[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "projectionTransform"), 1, GL_FALSE, &projection[0][0]);
+
+    // ----- 미니맵 바닥 -----
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureMap);
+    glUniform1i(glGetUniformLocation(shaderProgramID, "texture1"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgramID, "uUseTexture"), 1);
+
+    glBindVertexArray(vaoFloor);
+    SetModelTransform(glm::mat4(1.0f));
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    // ----- 미니맵 차량/장애물/아이템 -----
+    glUniform1i(glGetUniformLocation(shaderProgramID, "uUseTexture"), 0);
+
+    for (int i = 0; i < cars.size(); i++) {
+        if (i == playerID)
+            glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f);
+        else
+            glUniform3f(colorLoc, 1.0f, 0.0f, 1.0f);
 
         cars[i].Draw(shaderProgramID);
     }
