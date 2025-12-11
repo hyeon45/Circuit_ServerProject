@@ -263,5 +263,21 @@ void Renderer::DrawScene(const std::vector<Car>& cars, int playerID, const Obsta
     obstacles.Draw(shaderProgramID);
     items.Draw(shaderProgramID);
 
+    // ===========================
+    // 상태 원복 (메인 화면 기준)
+    // ===========================
+    glViewport(0, 0, window_width, window_height);
+
+    // UI나 이후 그리기를 위해 적당한 뷰/프로젝션 세팅
+    glm::mat4 uiView = glm::mat4(1.0f);
+    glm::mat4 uiProj = glm::ortho(
+        0.0f, static_cast<float>(window_width),
+        0.0f, static_cast<float>(window_height),
+        -1.0f, 1.0f
+    );
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "viewTransform"), 1, GL_FALSE, &uiView[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "projectionTransform"), 1, GL_FALSE, &uiProj[0][0]);
+
     //glutSwapBuffers();
 }
