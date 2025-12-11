@@ -165,24 +165,33 @@ void Renderer::Initialize() {
 // ------------------------
 // 씬 렌더링
 // ------------------------
-void Renderer::DrawScene(const Car& car, const ObstacleManager& obstacles, const ItemManager& items) {
+void Renderer::DrawScene(const std::vector<Car>& cars, int playerID, const ObstacleManager& obstacles, const ItemManager& items)
+{
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(shaderProgramID);
 
-    // 카메라 설정 (차량 기준)
-    glm::vec3 carPos = car.GetPosition();
-    glm::vec3 camPos = carPos + glm::vec3(-sin(car.GetYaw()) * 100.0f, 50.0f, cos(car.GetYaw()) * 100.0f);
+    // ===========================
+    // 카메라 내 플레이어 기준
+    // ===========================
+    glm::vec3 carPos = cars[playerID].GetPosition();
+    glm::vec3 camPos = carPos + glm::vec3(
+        -sin(cars[playerID].GetYaw()) * 100.0f,
+        50.0f,
+        cos(cars[playerID].GetYaw()) * 100.0f
+    );
+
     glm::mat4 view = glm::lookAt(camPos, carPos, glm::vec3(0, 1, 0));
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), 1000.0f / 800.0f, 0.1f, 2000.0f);
 
     glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "viewTransform"), 1, GL_FALSE, &view[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "projectionTransform"), 1, GL_FALSE, &proj[0][0]);
 
-    // 바닥
+    // ===========================
+    // 바닥 렌더링
+    // ===========================
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureMap);
     glUniform1i(glGetUniformLocation(shaderProgramID, "texture1"), 0);
-
     glUniform1i(glGetUniformLocation(shaderProgramID, "uUseTexture"), 1);
 
     glBindVertexArray(vaoFloor);
@@ -190,11 +199,24 @@ void Renderer::DrawScene(const Car& car, const ObstacleManager& obstacles, const
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-    // 객체 렌더링
+    // ===========================
+    // 차량 + 장애물 + 아이템
+    // ===========================
     glUniform1i(glGetUniformLocation(shaderProgramID, "uUseTexture"), 0);
-    car.Draw(shaderProgramID);
+
+    GLint colorLoc = glGetUniformLocation(shaderProgramID, "objectColor");
+
+    for (int i = 0; i < cars.size(); i++) {
+        if (i == playerID)
+            glUniform3f(colorLoc, 1.0f, 0.0f, 0.0f);
+        else
+            glUniform3f(colorLoc, 0.0f, 0.0f, 1.0f);
+
+        cars[i].Draw(shaderProgramID);
+    }
+
     obstacles.Draw(shaderProgramID);
     items.Draw(shaderProgramID);
 
-    glutSwapBuffers();
+    //glutSwapBuffers();
 }

@@ -13,7 +13,7 @@ class Renderer {
 public:
     Renderer();
     void Initialize();
-    void DrawScene(const Car& car, const ObstacleManager& obstacles, const ItemManager& items);
+    void DrawScene(const std::vector<Car>& cars, int playerID, const ObstacleManager& obstacles, const ItemManager& items);
 
 private:
     // Shader

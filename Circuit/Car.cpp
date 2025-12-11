@@ -2,26 +2,14 @@
 #include <GL/freeglut.h>
 
 Car::Car()
-    : position(100.0f, 10.0f, 1780.0f),
-    yaw(0.0f),
-    speed(0.0f),
-    acceleration(40.0f),
-    maxSpeed(80.0f),
+    : serverPosition(100.0f, 10.0f, 1780.0f),
+    renderPosition(serverPosition),
+    serverYaw(0.0f),
+    renderYaw(0.0f),
     scale(1.0f),
-    shield(false),
-    movingForward(false),
-    movingBackward(false),
-    turningLeft(false),
-    turningRight(false),
-    speedBoostTimer(0.0f),
-    shrinkTimer(0.0f),
-    lastCheckpoint(0)
+    shield(false)
 {
-    checkpoints = {
-        glm::vec3(100.0f,10.0f,1780.0f),
-        glm::vec3(1000.0f,10.0f,1700.0f),
-        glm::vec3(1050.0f,10.0f,1200.0f)
-    };
+
 }
 
 void Car::Init() {
@@ -70,54 +58,16 @@ void Car::Init() {
     glBindVertexArray(0);
 }
 
-void Car::Update(float dt) {
-    // 속도 갱신
-    if (movingForward) speed += acceleration * dt;
-    else if (movingBackward) speed -= acceleration * dt;
-    else {
-        // 감속
-        if (speed > 0.0f) speed -= acceleration * dt;
-        else if (speed < 0.0f) speed += acceleration * dt;
-    }
-
-    if (speed > maxSpeed) speed = maxSpeed;
-    if (speed < -maxSpeed) speed = -maxSpeed;
-
-    Rotate(dt);
-    Move(dt);
-
-    // 아이템 효과 지속시간 갱신
-    if (speedBoostTimer > 0.0f) {
-        speedBoostTimer -= dt;
-        if (speedBoostTimer <= 0.0f) maxSpeed /= 2.0f;
-    }
-
-    if (shrinkTimer > 0.0f) {
-        shrinkTimer -= dt;
-        if (shrinkTimer <= 0.0f) scale = 1.0f;
-    }
-}
-
-void Car::Move(float dt) {
-    glm::vec3 direction = glm::vec3(sin(yaw), 0.0f, -cos(yaw));
-    position += direction * speed * dt;
-}
-
-void Car::Rotate(float dt) {
-    float turnSpeed = glm::radians(15.0f);
-    if (turningLeft) yaw -= turnSpeed * dt;
-    if (turningRight) yaw += turnSpeed * dt;
-}
-
 void Car::Draw(GLuint shaderProgram) const {
     glUseProgram(shaderProgram);
 
-    GLint objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
-    if (objectColorLoc != -1) glUniform3f(objectColorLoc, 1.0f, 0.0f, 0.0f);
+    //GLint objectColorLoc = glGetUniformLocation(shaderProgram, "objectColor");
+    //if (objectColorLoc != -1) glUniform3f(objectColorLoc, 1.0f, 0.0f, 0.0f);
 
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, position);
-    model = glm::rotate(model, -yaw, glm::vec3(0, 1, 0));
+    glm::vec3 pos = renderPosition;
+    model = glm::translate(model, pos);
+    model = glm::rotate(model, -renderYaw, glm::vec3(0, 1, 0));
     model = glm::scale(model, glm::vec3(30.0f * scale, 5.0f * scale, 50.0f * scale));
 
     GLuint modelLoc = glGetUniformLocation(shaderProgram, "modelTransform");
@@ -126,10 +76,6 @@ void Car::Draw(GLuint shaderProgram) const {
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-}
-
-void Car::HandleKeyboard(unsigned char key, bool pressed) {
-    if (key == 'e' && pressed) ApplyItemEffect(static_cast<ItemType>(rand() % 3));
 }
 
 void Car::HandleSpecialKey(int key, bool pressed) {
@@ -141,36 +87,57 @@ void Car::HandleSpecialKey(int key, bool pressed) {
     }
 }
 
-void Car::ApplyItemEffect(ItemType type) {
-    switch (type) {
-    case ItemType::GROW:
-        scale = 2.0f;
-        shield = true;
-        break;
-    case ItemType::SHRINK:
-        scale = 0.5f;
-        shrinkTimer = 5.0f;
-        shield = false;
-        break;
-    case ItemType::SPEED_UP:
-        maxSpeed *= 2.0f;
-        speedBoostTimer = 5.0f;
-        shield = false;
-        break;
-    }
+//-------------------------------
+// 현재 입력을 mask하기 
+//-------------------------------
+uint8_t Car::GetInputMask() const
+{
+    uint8_t mask = 0;
+
+    if (movingForward)  mask |= 0x01;
+    if (movingBackward) mask |= 0x02;
+    if (turningLeft)    mask |= 0x04;
+    if (turningRight)   mask |= 0x08;
+
+    return mask;
 }
 
-void Car::ResetToCheckpoint() {
-    if (!checkpoints.empty()) {
-        position = checkpoints[lastCheckpoint];
-        speed = 0.0f;
-    }
+//-------------------------------
+// 서버에서 받은 입력 적용
+//-------------------------------
+void Car::SetPosition(float x, float y, float z) 
+{
+    serverPosition.x = x;
+    serverPosition.y = y;
+    serverPosition.z = z;
+    // std::cout << "x: " << x << "," << "y: " << y << "," << "z: " << z << std::endl;
+}
+
+void Car::SetYaw(float newYaw) 
+{
+    serverYaw = newYaw;
+}
+
+void Car::SetShield(bool active) 
+{
+    shield = active;
 }
 
 void Car::SetScale(float newScale) {
     scale = newScale;
 }
 
-float Car::GetScale() const {
-    return scale;
+void Car::Update(float dt)
+{
+    // 부드러움 정도 조절용 상수 (값 키우면 더 빨리 따라감)
+    const float smooth = 10.0f;
+
+    // 위치 보간: renderPos가 serverPos 쪽으로 천천히 이동
+    float alpha = smooth * dt;
+    if (alpha > 1.0f) alpha = 1.0f;
+
+    renderPosition = glm::mix(renderPosition, serverPosition, alpha);
+
+    // yaw도 비슷하게 (단순 보간, 각도 wrap 처리는 나중에 필요하면 추가)
+    renderYaw = renderYaw + (serverYaw - renderYaw) * alpha;
 }

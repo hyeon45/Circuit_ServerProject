@@ -1,24 +1,29 @@
 #include "Item.h"
 #include <cstdlib>
 
+// 서버에 저장
+
 ItemManager::ItemManager() {
-    positions = {
-        {270.0f, 5.0f, 1100.0f},
-        {300.0f, 5.0f, 1100.0f},
-        {330.0f, 5.0f, 1100.0f},
-        {360.0f, 5.0f, 1100.0f},
-        {1000.0f, 5.0f, 1700.0f},
-        {1000.0f, 5.0f, 1730.0f},
-        {1000.0f, 5.0f, 1760.0f},
-        {1000.0f, 5.0f, 1790.0f},
-        {1840.0f, 5.0f, 900.0f},
-        {1870.0f, 5.0f, 900.0f},
-        {1900.0f, 5.0f, 900.0f},
-        {1930.0f, 5.0f, 900.0f},
-        {810.0f, 5.0f, 600.0f},
-        {840.0f, 5.0f, 600.0f},
-        {870.0f, 5.0f, 600.0f},
-        {900.0f, 5.0f, 600.0f}
+    item = {
+        {0, {270.0f, 5.0f, 1100.0f}},
+        {1, {300.0f, 5.0f, 1100.0f}},
+        {2, {330.0f, 5.0f, 1100.0f}},
+        {3, {360.0f, 5.0f, 1100.0f}},
+
+        {4, {1000.0f, 5.0f, 1700.0f}},
+        {5, {1000.0f, 5.0f, 1730.0f}},
+        {6, {1000.0f, 5.0f, 1760.0f}},
+        {7, {1000.0f, 5.0f, 1790.0f}},
+
+        {8, {1840.0f, 5.0f, 900.0f}},
+        {9, {1870.0f, 5.0f, 900.0f}},
+        {10, {1900.0f, 5.0f, 900.0f}},
+        {11, {1930.0f, 5.0f, 900.0f}},
+
+        {12, {810.0f, 5.0f, 600.0f}},
+        {13, {840.0f, 5.0f, 600.0f}},
+        {14, {870.0f, 5.0f, 600.0f}},
+        {15, {900.0f, 5.0f, 600.0f}},
     };
 }
 
@@ -73,8 +78,8 @@ void ItemManager::Draw(GLuint shaderProgram) const {
     glUniform3f(colorLoc, 0.0f, 1.0f, 1.0f);
 
     glBindVertexArray(vao);
-    for (const auto& pos : positions) {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
+    for (const auto& pos : item) {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), pos.pos);
         GLuint modelLoc = glGetUniformLocation(shaderProgram, "modelTransform");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
@@ -82,25 +87,22 @@ void ItemManager::Draw(GLuint shaderProgram) const {
     glBindVertexArray(0);
 }
 
-void ItemManager::Collision(Car& car) {
-    const float collisionRange = 15.0f;
+// -------------------------------------------------
+// ProcessItemDelete에서 받은 itemID 로 로컬 아이템 삭제
+// -------------------------------------------------
+void ItemManager::ApplyItemDelete(int itemID)
+{
+    auto it = std::find_if(item.begin(), item.end(),
+        [itemID](const ItemData& d) {
+            return d.id == itemID;
+        });
 
-    for (size_t i = 0; i < positions.size();) {
-        float dist = glm::distance(car.GetPosition(), positions[i]);
-        if (dist < collisionRange) {
-            ItemType randomItem = static_cast<ItemType>(rand() % 3);
-            car.ApplyItemEffect(randomItem);
-
-            std::cout << "아이템 획득! 효과 적용됨." << std::endl;
-            RemoveItem(i);
-        }
-        else {
-            ++i;
-        }
+    if (it == item.end()) {
+        std::cout << "Item not found on client. id = " << itemID << "\n";
+        return;
     }
-}
 
-void ItemManager::RemoveItem(size_t index) {
-    if (index < positions.size())
-        positions.erase(positions.begin() + index);
+    item.erase(it);
+
+    std::cout << "Item removed on client. id = " << itemID << "\n";
 }

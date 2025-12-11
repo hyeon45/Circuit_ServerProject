@@ -6,6 +6,8 @@
 *.lo
 *.o
 *.obj
+*.iobj
+*.ipdb
 
 # Precompiled Headers
 *.gch
@@ -49,28 +51,9 @@
 *.db
 *.db-shm
 *.db-wal
-
-# Visual Studio
-*.obj
-*.pdb
-*.idb
-*.tlog
+*.vcxproj
+*.filters
 *.log
+*.tlog
 *.lastbuildstate
-*.recipe
-*.exe.recipe
-*.ilk
-*.dll
-*.exe
-*.cache
-*.db
-*.ipch
-*.VC.db
-*.opendb
-*.user
-*.suo
-*.VC.opendb
-.Debug/
-.Release/
-x64/
-
+*.idb
